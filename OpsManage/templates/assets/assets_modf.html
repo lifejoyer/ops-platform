@@ -1,0 +1,267 @@
+{% extends 'index.html' %}
+{% block ace-content %}
+<script type="text/javascript" src="/static/dist/js/bootstrap-notify.js"></script>
+{% endblock %}
+{% block page-content %}
+<div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header"><i class="fa  fa-gears "></i> 资产修改</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                           	 资产修改
+                        </div>
+                        <div class="panel-body">
+							<div class="row">
+                           		<div class="col-lg-2">
+                           		</div>
+                                <div class="col-lg-8">
+                                	<legend>主机信息修改 - *必填信息</legend>
+                                		<form role="form" method="post" id="modifyHost" class="main form-horizontal">{% csrf_token %}
+
+											<fieldset>
+					
+											<div class="form-group" >
+												 <label class="col-sm-2 control-label"><font color='red'>* </font>主机地址</label>
+												 <div class="col-sm-6">
+												 	<input type="text" class="form-control" name="server_ip" placeholder="Ip Address" value="{{ asset_body.ip|default:"" }}" pattern="^(\d+\.\d+\.\d+\.\d+|[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(/.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+/.?))$" title="请输入IP地址或者域名"  class="input-xlarge"/>
+												 </div>
+											</div>
+
+											<div class="form-group">
+												 <label class="col-sm-2 control-label"><font color='red'>* </font>认证方式<i class="fa fa-info-circle" data-toggle="tooltip"  title="如果选择密钥方式认证，请先在部署服务器到节点服务器做好证书认证"></i></label>
+												 <div class="col-sm-6">
+												 	<select class="form-control" id='auth_type_select' onchange="javascript:oBtAuthType();" name="server_keyfile">
+												 		{% if asset_body.keyfile == 1 %}
+													 		<option value="1" name="server_keyfile" selected="selected">密钥认证</option>
+													 		<option value="0" name="server_keyfile" >账户密码</option>
+												 		{% else %}
+															<option value="1" name="server_keyfile">密钥认证</option>
+													 		<option value="0" name="server_keyfile" selected="selected">账户密码</option>												 		
+												 		{% endif %}
+												 	</select>
+												 </div>
+											</div>
+												<div class="form-group">
+													 <label class="col-sm-2 control-label"><font color='red'>* </font>账户</label>
+													 <div class="col-sm-6">
+													 <input type="text" class="form-control" name="server_username" placeholder="Username"  class="input-xlarge" value="{{ asset_body.username|default:"" }}" />
+													 </div>
+												</div>											
+											{% if asset_body.keyfile == 1 %}
+												<div id="auth_accout_select" style="display:none;">
+											{% else %}
+												<div id="auth_accout_select">
+											{% endif %}
+	
+												<div class="form-group">
+													 <label class="col-sm-2 control-label"><font color='red'>* </font>密码</label>
+													 <div class="col-sm-6">
+													 <input type="password" class="form-control" name="server_passwd" placeholder="Password"  class="input-xlarge" value="{{ asset_body.passwd|default:"" }}" />
+													 </div>
+												</div>	
+												<div class="form-group">
+													 <label class="col-sm-2 control-label">sudo密码</label>
+													 <div class="col-sm-6">
+													 <input type="password" class="form-control" name="server_sudo_passwd" placeholder="Password"  class="input-xlarge" value="{{ asset_body.sudo_passwd|default:"" }}" />
+													 </div>
+												</div>																																			
+												<div class="form-group">
+													 <label class="col-sm-2 control-label">主机名字</label>
+													 <div class="col-sm-6">
+													 	<input type="text" class="form-control" name="server_hostname" placeholder="Hostname"  class="input-xlarge" value="{{ asset_body.hostname|default:"" }}" />
+													 </div>
+												</div>																												
+							
+											</div>
+											<div class="form-group">
+												 <label class="col-sm-2 control-label"><font color='red'>* </font>端口</label>
+												 <div class="col-sm-6">
+												 <input type="text" class="form-control" name="server_port" placeholder="Port"  class="input-xlarge" pattern="^(\d+)" value="{{ asset_body.port|default:"" }}" />
+												 </div>
+											</div>
+
+											</fieldset>
+											<legend></legend>
+											<div class="form-group">
+											<label class="col-sm-3 control-label"></label>
+											<button type="button" id="add_host_submit" onclick="repealFromVaule(this)" class="btn btn-danger" >撤销操作</button>
+									 		<button type="button" id="add_host_submit"  class="btn btn-primary" onclick="addAssetsData(this)" >确认提交</button>
+									 		</div>
+									 		
+										</form>	
+                                </div>
+                            </div>	
+                            <!-- /.row (nested) -->
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+</div>
+<script type="text/javascript">
+$(function () { $("[data-toggle='tooltip']").tooltip(); });
+
+
+function oBtProjectSelect(){
+	   $('#asset_business option:selected').empty();
+	   var dbId = $('#asset_project option:selected').val();
+	   if ( dbId.length > 0){	 
+			$.ajax({
+				dataType: "JSON",
+				url:'/api/project/'+ dbId + '/', //请求地址
+				type:"GET",  //提交类似
+				success:function(response){
+					var binlogHtml = '<select class="form-control" name="asset_business" id="asset_business" >'
+					var selectHtml = '';
+					for (var i=0; i <response["service_assets"].length; i++){
+						 selectHtml += '<option name="asset_business" value="'+ response["service_assets"][i]["id"] +'">' + response["service_assets"][i]["service_name"] + '</option>' 
+					};                        
+					binlogHtml =  binlogHtml + selectHtml + '</select>';
+					document.getElementById("asset_business").innerHTML= binlogHtml;	
+						
+				},
+			});	
+	   };
+}
+
+
+
+function addAssetsData(obj) {
+	var form = document.getElementById('modifyHost');
+	for (var i = 0; i < form.length; ++i) {
+		var name = form[i].name;
+		var value = form[i].value;
+        var asset_ip = name.indexOf("server_ip");
+        var asset_username = name.indexOf("server_username")
+        var asset_port = name.indexOf("server_port")
+		var assetStart = name.indexOf("asset_");
+		if ((asset_ip==0 || asset_username == 0 || asset_port == 0 ) && value.length == 0){
+			$("[name='"+ name +"']").parent().addClass("has-error");
+			window.wxc.xcConfirm("请注意*必填项不能为空~", window.wxc.xcConfirm.typeEnum.error);
+			return false;
+		}else if ((asset_ip==0 || asset_username == 0 || asset_port == 0 ) && value.length > 0) {
+            if (asset_port == 0) {
+                var isNum = parseInt(value)
+                if (isNaN(isNum)) {
+                    $("[name='" + name + "']").parent().addClass("has-error");
+                    window.wxc.xcConfirm("端口号必须为数字", window.wxc.xcConfirm.typeEnum.error);
+                    return false;
+                }
+            }
+            $("[name='" + name + "']").parent().removeClass("has-error");
+            $("[name='" + name + "']").parent().addClass("has-success");
+        }
+	};
+	var asset_data = getFormData(document.getElementById('modifyHost'),'');
+// 	alert(JSON.stringify(asset_data));  
+	var btnObj = $(obj);
+    var putUrl = '/api/server/{{ asset_body.id }}/';
+	$.ajax({
+		dataType: "JSON",
+		url:putUrl, //请求地址
+		type:"PUT",  //提交类似
+		contentType: "application/json",
+		data: JSON.stringify({
+			'data':asset_data
+		}),  //提交参数
+		success:function(response){
+			window.wxc.xcConfirm("资产修改成功", window.wxc.xcConfirm.typeEnum.success);
+			window.location.href="/assets_list";
+		},
+    	error:function(response){
+/*     		window.wxc.xcConfirm("资产添加失败："+response.toJSONString(), window.wxc.xcConfirm.typeEnum.error); */
+			$.notify({
+				title: "<strong>资产修改错误:</strong><br>",
+				message: response.responseText
+			},
+			{
+				type: 'danger',
+				delay: 3600000
+			});	
+    	}
+	})	
+}
+
+
+function oBtAuthType() {
+	   var obj = document.getElementById("auth_type_select"); 
+	   var index = obj.selectedIndex;
+	   var value = obj.options[index].value; 
+	   if (value=="0"){
+		   document.getElementById("auth_accout_select").style.display = "";  	   
+	   }
+	   else {
+		   document.getElementById("auth_accout_select").style.display = "none";	
+	   }
+}	
+
+
+$(document).ready(function() {
+    var mark = $('#asset_mark').val().replace(/<br\/>/g, "\n");
+    $('#asset_mark').text(mark)
+}); 
+
+
+function getFormData (form, filler) {
+	var assets = {};
+	var server = {};
+	var net = {};
+	for (var i = 0; i < form.length; ++i) {
+		var name = form[i].name;
+		var value = form[i].value;
+		if (name.length == 0)
+			continue;
+		try {
+			value  = value.replace(/\n/g,'<br/>');
+		}catch (e) {
+			alert(e);
+		}
+		if (value.length == 0) {
+			if ((typeof filler != 'string') || (filler.length == 0))
+				continue;
+			else
+				value = filler;
+		}
+		var assetStart = name.indexOf("asset_");
+		var serverStart = name.indexOf("server_");
+		var netStart = name.indexOf("net_");
+		if (assetStart==0){
+			var asz = "assets." + name.replace("asset_","")+" = '" + value + "'"
+			
+			try {
+				eval(asz);
+			} catch (e) {
+				alert(e);
+			}
+		}
+		else if(serverStart==0){
+			var ssz = "server."+name.replace("server_","")+" = '" + value + "'";
+			try {
+				eval(ssz);
+			} catch (e) {
+				alert(e);
+			}
+		}			
+		else if(netStart==0){
+			var nsz = "net."+name.replace("net_","")+" = '" + value + "'";
+			try {
+				eval(nsz);
+			} catch (e) {
+				alert(e);
+			}
+		}
+		
+	}
+    server.assets = assets;
+    return server;
+}
+</script> 
+{% endblock %}
