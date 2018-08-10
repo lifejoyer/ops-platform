@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from OpsManage.models import (Global_Config,Email_Config,Assets,
                               Cron_Config,Log_Assets,Project_Config,
-                              Ansible_Playbook)
+                              Ansible_Playbook,Server_Assets)
 from orders.models import Order_System
 from django.contrib.auth.decorators import permission_required
 
@@ -18,7 +18,7 @@ def index(request):
     #7天更新频率统计
     userList = Order_System.objects.raw('''SELECT id,order_user FROM opsmanage_order_system where order_type=1 GROUP BY order_user;''')
     userList = [ u.order_user for u in userList ]
-    dateList = [ base.getDaysAgo(num) for num in xrange(0,7) ][::-1]#将日期反序
+    dateList = [ base.getDaysAgo(num) for num in range(0,7) ][::-1]#将日期反序
     dataList = []
     for user in userList:  
         try:
@@ -88,7 +88,7 @@ def index(request):
     #获取资产更新日志
     assetsLog = Log_Assets.objects.all().order_by('-id')[0:10]
     #获取所有项目数据
-    assets = Assets.objects.all().count()
+    assets = Server_Assets.objects.all().count()
     project = Project_Config.objects.all().count()
     cron = Cron_Config.objects.all().count()
     playbook = Ansible_Playbook.objects.all().count()

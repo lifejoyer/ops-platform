@@ -20,14 +20,20 @@
                                     <form role="form" id="deployRun" class="main form-horizontal" >{% csrf_token %}
 										<fieldset>															
 											<div class="form-group">
-												 <label class="col-sm-2 control-label">项目名称</label>
+												 <label class="col-sm-4 control-label">项目名称</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" name="project_name" value="{{project.project_name}}"  class="input-xlarge" disabled/>
+												 	<input type="text" class="form-control" name="project_name" value="{{project.project.project_name}}"  class="input-xlarge" disabled/>
 												 </div>
 											</div>
-											{% if project.project_model == 'branch' %}																
 											<div class="form-group">
-												 <label class="col-sm-2 control-label">分支</label>
+												 <label class="col-sm-4 control-label">服务模块</label>
+												 <div class="col-sm-6">
+												 	<input type="text" class="form-control" name="service_name" value="{{project.service.service_name}}"  class="input-xlarge" disabled/>
+												 </div>
+											</div>
+											{% if project.project_repertory == 'git' %}
+											<div class="form-group">
+												 <label class="col-sm-4 control-label">分支</label>
 												 <div class="col-sm-6">
 												   <select class="form-control" name="project_branch"  id="branch_choice"  onchange="javascript:oBtBranchChoice();">
 												   			<option  selected="selected" name="project_branch">选择一个分支</option>
@@ -43,7 +49,7 @@
 											</div>													
 											
 											<div class="form-group">
-												 <label class="col-sm-2 control-label">版本选择</label>
+												 <label class="col-sm-4 control-label">版本选择</label>
 												 <div class="col-sm-6">
 												   <select class="form-control" name="project_version" id="project_version" >
 												   		<option selected="selected" value="" name="project_version" >请选择版本</option>

@@ -89,9 +89,9 @@ class GitTools(object):
             git_url = str(url).split("://")[-1]
             url = "http://" + user + ":" + passwd + "@" + git_url
         cmd_init = "git config --global credential.helper store"
-        cmd = "git clone {url} {dir}".format(url=url, dir=dir)
+        cmd_clone = "git clone {url} {dir}".format(url=url, dir=dir)
         commands.getstatusoutput(cmd_init)
-        return commands.getstatusoutput(cmd)
+        return commands.getstatusoutput(cmd_clone)
         
     def pull(self,path):     
         cmd = "cd {path} && git pull".format(path=path)           

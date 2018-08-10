@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ''' celery config '''
 djcelery.setup_loader()
-BROKER_URL = 'redis://192.168.88.233:6379/4' 
+BROKER_URL = 'redis://192.168.1.132:6379/4'
 CELERY_RESULT_BACKEND = 'djcelery.backends.database.DatabaseBackend'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER='pickle'
@@ -57,7 +57,7 @@ CELERY_DEFAULT_ROUTING_KEY = 'default'
 
 
 
-REDSI_KWARGS_LPUSH = {"host":'192.168.88.233','port':6379,'db':3}
+REDSI_KWARGS_LPUSH = {"host":'192.168.1.132','port':6379,'db':3}
 REDSI_LPUSH_POOL = None
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
@@ -76,7 +76,7 @@ CHANNEL_LAYERS = {
     "default": {
        "BACKEND": "asgi_redis.RedisChannelLayer",  # use redis backend
        "CONFIG": {
-            "hosts": [("localhost", 6379)],  #无密码方式
+            "hosts": [("192.168.1.132", 6379)],  #无密码方式
             "channel_capacity": {
                                    "http.request": 1000,
                                    "websocket.send*": 10000,
@@ -136,7 +136,7 @@ ROOT_URLCONF = 'OpsManage.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ["/mnt/OpsManage/OpsManage/static/",'/mnt/OpsManage/OpsManage/templates/'],
+        'DIRS': ["/data/OpsManage/OpsManage/static/",'/data/OpsManage/OpsManage/templates/'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -160,9 +160,9 @@ DATABASES = {
     'default': {
         'ENGINE':'django.db.backends.mysql',
         'NAME':'opsmanage',
-        'USER':'root',
-        'PASSWORD':'welliam',
-        'HOST':'192.168.88.201'                
+        'USER':'ops',
+        'PASSWORD':'abc+123',
+        'HOST':'192.168.1.122'
 #         'ENGINE': 'django.db.backends.sqlite3',
 #         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
@@ -190,7 +190,7 @@ MEDIA_URL = '/upload/'
 SFTP_CONF = {
              'port':22,
              'username':'root',
-             'password':'welliam',
+             'password':'abc+123',
              'timeout':30
              }  #修改成能sftp登陆OpsManage的账户
 
@@ -198,3 +198,19 @@ WORKSPACES = '/var/lib/opsmanage/workspaces/'
 
 LOGIN_URL = '/login'
 
+DOCKER_IMAGE={
+    "tomcat": "docker.jhh.com/tomcat-key:8.5.30",
+    "jdk": "docker.jhh.com/jdk:1.8v3"
+}
+
+DING_TALK="https://oapi.dingtalk.com/robot/send?access_token=8703ddca5f2418cc5fa72b18d187450766adcb6226ba2858e65f9707f5ed5ec9"
+
+DOCKER_REGISTRY={
+    "test": "docker.jhh.com",
+    "prod": "registry.cn-shanghai.aliyuncs.com/jinhh"
+}
+
+PROJECT_SERVICE_IP={
+    "test": "192.168.1.119",
+    "prod": ""
+}

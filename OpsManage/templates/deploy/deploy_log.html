@@ -31,9 +31,9 @@
 				                                <thead>
 				                                    <tr>
 				                                    	<th class="text-center">产品线</th>
-				                                    	<th class="text-center">项目名称</th>
+				                                    	<th class="text-center">服务名称</th>
 				                                    	<th class="text-center">项目环境</th>
-				                                    	<th class="text-center">版本号</th>
+				                                    	<th class="text-center">项目分支</th>
 				                                    	<th class="text-center">操作内容</th>
 				                                    	<th class="text-center">操作用户</th>
 														<th class="text-center">操作时间</th>
@@ -45,22 +45,18 @@
 				                                <tbody>
 				                                	{% for ds in projectList %}
 				                                		<tr class="odd gradeX" id="deployLogs-{{ds.id}}">
-				                                			<td class="text-center">{{ds.project.project.project_name}} </td>
 				                                			<td class="text-center">{{ds.project_name}} </td>
+				                                			<td class="text-center">{{ds.project.service.service_name}} </td>
 				                                			<td class="text-center">
-				                               					{% if ds.project.project_env == 'sit' %}
+				                               					{% if ds.project.project_env == 'test' %}
 				                                					<span class="label label-success">测试环境</span>
-				                                				{% elif ds.project.project_env == 'qa' %}
-				                                					<span class="label label-warning">预生产环境</span>
 				                                				{% elif ds.project.project_env == 'uat' %}
+				                                					<span class="label label-warning">预生产环境</span>
+				                                				{% elif ds.project.project_env == 'prod' %}
 				                                					<span class="label label-danger">生产环境</span>
 				                                				{% endif %}				                                			
 				                                			</td>
-				                                			<td class="text-center">
-				                                			{% if ds.project_branch %}
-				                                				<a href="javascript:;" target="_blank" class="tooltip-test" data-toggle="tooltip" title="{{ds.project_branch}}">{{ds.project_branch|slice:":13" }}...</a>		                                								                                			
-				                                			{% endif %}
-				                                			</td>
+				                                			<td class="text-center">{{ds.project_branch}}</td>
 				                                			<td class="text-center">{{ds.project_content}} </td>
 				                                			<td class="text-center">{{ds.project_user}} </td>				                                			
 				                                			<td class="text-center">{{ds.create_time|date:"Y/m/d H:i  "}} </td>
@@ -114,23 +110,42 @@
 <script type="text/javascript">
 
 
-		$(document).ready(function() {
+  $(document).ready(function() {
 		    $('#projectTableList').DataTable({
 		        responsive: true
 		    });
-		});
+  });
 
-		function deleteDeployLogs(obj,id) {
-			$.ajax({
-				dataType: "JSON",
-				url:'/api/logs/deploy/'+ id +'/', //请求地址
-				type:"DELETE",  //提交类似
-				success:function(response){
-					var str= 'deployLogs-' + id
-					document.getElementById(str).innerHTML = ''; 
-				}					
-			})					
-		}				
+  function deleteDeployLogs(obj,id) {
+		var txt=  "是否确认删除？";
+		var btnObj = $(obj);
+{#		btnObj.attr('disabled',true);#}
+		var option = {
+			title: "删除操作日志",
+			btn: parseInt("0011",2),
+			onOk: function(){
+				$.ajax({
+                      dataType: "JSON",
+				      url:'/api/deploy/logs/'+ id +'/', //请求地址
+				      type:"DELETE",  //提交类似
+				      success:function(result){
+                          var str= 'deployLogs-' + id
+                          document.getElementById(str).innerHTML = '';
+                          window.wxc.xcConfirm("删除成功！"+ string(response), window.wxc.xcConfirm.typeEnum.success);
+	                	  //location.reload('/deploy_list/');
+				      },
+		              error:function(result){
+		            	window.wxc.xcConfirm("删除失败！", window.wxc.xcConfirm.typeEnum.error);
+		              }
+					});
+			},
+			onCancel:function(){
+			},
+			onClose:function(){
+			}
+		}
+		window.wxc.xcConfirm(txt, "custom", option);
+  }
   
 </script>
 

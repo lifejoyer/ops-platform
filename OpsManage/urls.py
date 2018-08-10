@@ -52,6 +52,7 @@ urlpatterns = [
     url(r'^deploy_add',deploy.deploy_add),
     url(r'^deploy_list',deploy.deploy_list),
     url(r'^deploy_log/(?P<page>[0-9]+)/$',deploy.deploy_log),
+    url(r'^deploy_record/(?P<page>[0-9]+)/$',deploy.deploy_record),
     url(r'^deploy_mod/(?P<pid>[0-9]+)/$',deploy.deploy_modf),
     url(r'^deploy_init/(?P<pid>[0-9]+)/$',deploy.deploy_init),
     url(r'^deploy_version/(?P<pid>[0-9]+)/$',deploy.deploy_version),    

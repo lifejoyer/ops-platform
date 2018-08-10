@@ -42,7 +42,7 @@
 								<div class="form-group">
 									<label><font color='red'>* </font>产品线名称</label> 
 									<select class="form-control" id="project_id"  onchange="javascript:oBtProjectSelect();" required>
-										<option selected="selected" name="project_id">请选择产品线</option>
+										<option name="project_id" value="">请选择产品线</option>
 										{% for ds in baseAssets.project %}
 											<option value="{{ds.id}}" name="project_id">{{ds.project_name}}</option>
 										{% endfor %}
@@ -50,18 +50,14 @@
 									<p class="help-block">例如：uduoduo</p>
 								</div>
 								<div class="form-group">
-									 <label><font color='red'>* </font>业务类型</label>
-									 <select class="form-control" name="project_service" id="project_service" onchange="javascript:oBtServiceSelect('service','server');" required>
-									   		<option selected="selected" value="">请选择一个类型</option>								   							
+									 <label><font color='red'>* </font>服务模块</label>
+									 <select class="form-control" name="service_id" id="service_id" title="" onchange="javascript:oBtServiceSelect();" required>
+									   		<option value="">请选择一个服务</option>
 									</select>
 								</div>
-                                <div class="form-group">
-                                    <label><font color='red'>* </font>项目名称</label>
-                                    <input class="form-control" id="project_name" value="" disabled>
-                                </div>
 								<div class="form-group">
 									<label><font color='red'>* </font>项目环境</label> 
-									<select class="form-control" id="project_env" name="project_env" onchange="javascript:oBtEnvType();" required>
+									<select class="form-control" id="project_env" name="project_env" required>
 										<option value="">请选择项目环境</option>
 										<option value="test" name="project_env">测试环境</option>
 										<option value="uat" name="project_env">灰度环境</option>
@@ -69,62 +65,45 @@
 									</select>
 								</div>
 								<div class="form-group">
-									<label><font color='red'>* </font>远程仓库类型</label> 
-									<select class="form-control" id="project_repertory" name="project_repertory" required>
-										<option selected="selected" value="">请选择仓库类型</option>
-										<option value="git" name="project_repertory">Git</option>
-										<option value="svn" name="project_repertory">Svn</option>
-									</select>
+                                    <input class="form-control" id="project_repertory" name="project_repertory" value="git" type="hidden" />
 								</div>
 								<div class="form-group">
 									<label><font color='red'>* </font>仓库地址</label> 
-									<input class="form-control" id="project_address" name="project_address" required>
-									<p class="help-block">例如：https://github.com/welliamcao/VManagePlatform.git</p>
+									<input class="form-control" id="project_address" name="project_address" required />
+									<p class="help-block">http://git.jhh.com/jhs-loan/jhs-loan.git</p>
 								</div>
 								<div class="form-group" id="repo_type">
-									<label>仓库账户/密码<i class="fa fa-info-circle"
-										data-toggle="tooltip" title="Git/Svn的账户密码"></i></label>
+									<label>仓库账户/密码/分支<i class="fa fa-info-circle"
+										data-toggle="tooltip" title="Git的账户/密码/分支"></i></label>
 									<div class="form-inline from-group">
-										<input type="text" class="form-control"
-											id="project_repo_user" placeholder="请输入账户"> <input
-											type="text" class="form-control" id="project_repo_passwd"
-											placeholder="请输入密码">
+										<input type="text" class="form-control" name="project_repo_user"
+											id="project_repo_user" placeholder="请输入账户" /> <input
+											type="text" class="form-control" id="project_repo_passwd" name="project_repo_passwd"
+                                            placeholder="请输入密码"  /> <input type="text" class="form-control"
+                                            id="project_branch" name="project_branch" placeholder="请输入分支" />
 									</div>
-								</div>
-								<div class="form-group">
-									<label><font color='red'>* </font>分支/Tag上线<i class="fa fa-info-circle" data-toggle="tooltip" title="选择用branch还是tag作为版本控制"></i></label> 
-									<select class="form-control" id="project_model" name="project_model" required>
-										<option selected="selected" value="">选择上线版本控制类型</option>
-										<option value="branch" name="project_model">Branch</option>
-										<option value="tag" name="project_model">Tag</option>
-									</select>
 								</div>
 								<div class="form-group" >			 		             
-									<label ><font color='red'>* </font>语言类型: </label>	
+									<label ><font color='red'>* </font>是否需要shell命令: </label>
 									<div class="btn-group btn-group-sm">
-										<button type="button" class="btn btn-default" onclick="setCompileMode('compile')"><a>编译型</a></button>
-										<button type="button" class="btn btn-default" onclick="setCompileMode('noncompile')"><a>非编译型</a></button>
+										<button type="button" class="btn btn-default" onclick="setShellcmd('yes')"><a>Yes</a></button>
+										<button type="button" class="btn btn-default" onclick="setShellcmd('no')"><a>No</a></button>
 									</div>
 								</div> 
-								<div  id="compile" style="display: none;">
+								<div  id="isShellcmd" style="display: none;">
 									<div class="form-group" >
-										<label>编译命令<i class="fa fa-info-circle" data-toggle="tooltip" title="写入编译命令"></i></label>
+										<label>shell命令<i class="fa fa-info-circle" data-toggle="tooltip" title="写入shell命令"></i></label>
 										<div id="project_local_command" name="project_local_command" class="ace_editor"></div>								
 									</div>
 									<div class="form-group">
 										<label>代码发布目录<i class="fa fa-info-circle" data-toggle="tooltip" title="真实被同步代码的目录"></i></label> 
-										<input class="form-control" name="project_dir" value="{{project_dir}}release/" id="project_dir" required pattern="^/.*/$" title="正确格式：/path/" disabled>
+										<input class="form-control" name="project_dir" value="{{project_dir}}release/" id="project_dir" required pattern="^/.*/$" title="正确格式：/path/" type="hidden" />
 									</div>	
 								</div>		
 								<div class="form-group">
 									<label><font color='red'>* </font>源代码存放地址</label> 
-									<input class="form-control" id="project_repo_dir" name="project_repo_dir" value="{{project_dir}}source/" required pattern="^/.*/$" title="正确格式：/path/" disabled>
+									<input class="form-control" id="project_repo_dir" name="project_repo_dir" value="{{project_dir}}source/" required pattern="^/.*/$" title="正确格式：/path/"  />
 								</div>																					
-								<div class="form-group">
-									<label>排除文件<i class="fa fa-info-circle" data-toggle="tooltip" title="项目目录的相对路径"></i></label>
-									<textarea class="form-control" rows="3" id="project_exclude" name="project_exclude"></textarea>
-									<p class="help-block">例如：.git,data/upload</p>
-								</div>
 
 								<button type="reset" class="btn btn-default">撤销</button>
 								<button type="button" class="btn btn-default"  onclick="addDeployProject(this,'audit')" >提交</button>
@@ -132,48 +111,48 @@
 						<!-- /.col-lg-6 (nested) -->
 						<div class="hr hr32 hr-dotted"></div>
 						<div class="col-lg-6">
-							<legend><i class="fa  fa-paper-plane-o"></i>目标服务器</legend>
+							<legend><i class="fa  fa-paper-plane-o"></i>持续集成配置</legend>
 							<div class="form-group">
-								<label><font color='red'>* </font>目标服务器</label> <br> 
-								<select multiple class="form-control"   name="server" id="server" required>
-{# 								    {% for ds in serverList %}#}
-{#									    <option name="server" value="{{ds.id}}">{{ds.ip}}</option>#}
-{#									{% endfor %}#}
+								<label><font color='red'>* </font>jenkins节点选择</label> <br>
+								<select class="form-control"   name="jenkins_id" id="jenkins_id" required>
+ 								    <option value="" >请选择jenkins节点</option>
+                                    {% for ds in baseAssets.jenkins %}
+									    <option name="jenkins_id" value="{{ds.id}}">{{ds.jenkins_name}}</option>
+									{% endfor %}
 								</select>
 							</div>
 							<div class="form-group">
-								<label><font color='red'>* </font>用户<i class="fa fa-info-circle"
-									data-toggle="tooltip" title="部署服务跟目标服务器都需要创建该用户"></i></label> <input
-									class="form-control" id="project_user" required
-									pattern="^\w+$" title="不要输入非法字符">
-								<p class="help-block">例如：www</p>
+								<label><font color='red'>* </font>k8s节点选择</label> <br>
+								<select class="form-control"   name="k8s_id" id="k8s_id" required >
+                                    <option value="">请选择k8s节点</option>
+ 								    {% for ds in baseAssets.k8s %}
+									    <option name="k8s_id" value="{{ds.id}}">{{ds.k8s_name}}</option>
+									{% endfor %}
+								</select>
 							</div>
 							<div class="form-group">
-								<label><font color='red'>* </font>部署目录</label> <input class="form-control" id="dir" required pattern="^/.*/$" title="正确格式：/path/">
-								<p class="help-block">例如：/var/www/project/</p>
+								<label><font color='red'>* </font>对外开放端口</label>
+                                <div class="form-inline from-group">
+										<input type="text" class="form-control" name="project_service_port"
+											id="project_service_port" placeholder="请输入服务端口" onmouseleave="check_service_port('project_service_port')" /> <input type="text"
+                                            class="form-control" id="project_debug_port" name="project_debug_port" onmouseleave="check_service_port('project_debug_port')"
+                                            placeholder="请输入debug端口" />
+                                </div>
+								<p class="help-block" id="help-result-info">例如：20001,只能是20000-40000之间的端口</p>
 							</div>
 							<div class="form-group">
-								<label>部署之后执行的命令</label>
-								<textarea class="form-control" rows="3" id="project_remote_command" name="project_remote_command"></textarea>
-								<p class="help-block">例如：service nginx restart && service httpd restart</p>
+								<label>容器环境变量</label>
+                                <input class="form-control"  type="text" id="project_env_var" name="project_env_var" />
+								<p class="help-block">例如：{'ENV':'test'} 必须是字典格式</p>
+							</div>
+							<div class="form-group">
+								<label>容器日志挂载路径</label>
+                                <input class="form-control"  type="text" id="project_mount_path" name="project_mount_path" />
+								<p class="help-block">例如：/usr/local/tomcat/logs 只能是目录</p>
 							</div>
 						</div>
 						<!-- /.col-lg-6 (nested) -->
 						<div class="hr hr32 hr-dotted"></div>
-						<div class="col-lg-6" id="extConfig" style="display: none;">
-							<legend>
-								<i class="fa  fa-gears"></i> 扩展配置
-							</legend>
-							<div class="form-group">
-								<label><font color='red'>* </font>部署授权组<i class="fa fa-info-circle" data-toggle="tooltip" title="选择的用户组能够授权部署工单"></i></label> <br>
-								<select class="form-control" name="project_audit_group" id="project_audit_group">
-									<option name="project_audit_group" id="project_audit_group" selected="selected" value="0">选择一个授权组</option> 
-									{% for ds in groupList %}
-										<option name="project_audit_group"  value="{{ds.id}}">{{ds.name}}</option>
-									{% endfor %}
-								</select>
-							</div>
-						</div>
 						</form>
 					</div>
 					<!-- /.row (nested) -->
@@ -196,24 +175,49 @@ $(function(){
     $("#project_name").on("input",function(e){
     	$("#project_dir").attr("value",'{{project_dir}}release/'+e.delegateTarget.value+'/');
     	$("#project_repo_dir").attr("value",'{{project_dir}}source/'+e.delegateTarget.value+'/');
-    	$("#dir").attr("value",'/var/www/'+e.delegateTarget.value+'/');
     });
-    
+
 });
 
-var project_type = 'uncompile';
-function setCompileMode(id){
-	if (id=='compile'){
-		document.getElementById("compile").style.display = "";
-		project_type = 'compile';
-	}
-	else{
-		document.getElementById("compile").style.display = "none";	
-		project_type = 'uncompile';
-	}
-	
+
+function check_service_port(id) {
+    var btnObj=$('#'+id)
+    var data=btnObj.val()
+        if(data){
+            if(!isRealNum(data) || Number(data) > 50000 || Number(data) < 20000){
+                btnObj.parent().addClass("has-error")
+                return false
+            }else{
+                btnObj.parent().removeClass("has-error")
+                return true
+            }
+        }else{
+            return true
+        }
 }
 
+function isRealNum(val){
+    if(val === "" || val ==null){
+        return false;
+    }
+    if(!isNaN(val)){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+var project_type = 'no';
+function setShellcmd(id){
+	if (id=='yes'){
+		document.getElementById("isShellcmd").style.display = "";
+		project_type = 'yes';
+	}
+	else {
+        document.getElementById("isShellcmd").style.display = "none";
+        project_type = 'no';
+    }
+}
 
 
 function setAceEditMode(model) {
@@ -234,102 +238,65 @@ function setAceEditMode(model) {
 setAceEditMode("sh");
 
 function oBtProjectSelect(){
-	   $('#project_service').removeAttr("disabled");
-	   var obj = document.getElementById("project_id"); 
+	   $('#service_id').removeAttr("disabled");
+	   var obj = document.getElementById("project_id");
 	   var index = obj.selectedIndex;
-	   var projectId = obj.options[index].value; 
-	   if ( projectId > 0){	 
+	   var projectId = obj.options[index].value;
+	   if ( projectId > 0){
 			$.ajax({
 				dataType: "JSON",
 				url:'/api/project/'+ projectId + '/', //请求地址
 				type:"GET",  //提交类似
 				success:function(response){
-					var binlogHtml = '<select class="form-control" name="project_service" id="project_service" onchange="javascript:oBtServiceSelect();" required><option selected="selected" name="project_service" value="">请选择业务类型</option>'
 					var selectHtml = '';
-					for (var i=0; i <response["service_assets"].length; i++){
-						 selectHtml += '<option name="project_service" value="'+ response["service_assets"][i]["id"] +'">' + response["service_assets"][i]["service_name"] + '</option>' 
-					};                        
-					binlogHtml =  binlogHtml + selectHtml + '</select>';
-					document.getElementById("project_service").innerHTML= binlogHtml;
-                    $("#project_dir").attr("value",'{{project_dir}}release/'+response["project_english_name"]+'/');
-    	            $("#project_repo_dir").attr("value",'{{project_dir}}source/'+response["project_english_name"]+'/');
-    	            $("#project_name").attr("value",response["project_english_name"]);
-    	            $("#dir").attr("value",'/var/www/'+response["project_english_name"]+'/');
+					for (var i=0; i<response["service_assets"].length; i++){
+					    if(i==0) {
+					        selectHtml += '<option name="service_id" selected="selected" value="'+ response["service_assets"][i]["id"] +'">' + response["service_assets"][i]["service_name"] + '</option>'
+                        } else {
+					        selectHtml += '<option name="service_id" value="'+ response["service_assets"][i]["id"] +'">' + response["service_assets"][i]["service_name"] + '</option>'
+                        }
+					};
+                    var obj = document.getElementById("service_id")
+                    obj.setAttribute('title', response["project_english_name"]);
+					obj.innerHTML= selectHtml;
+					var default_service_name ="";
+					if (response["service_assets"].length>=1){
+					    default_service_name = response["service_assets"][0]["service_name"] + "/";
+                    }
+                    $("#project_dir").attr("value",'{{project_dir}}release/'+response["project_english_name"]+'/' + default_service_name);
+    	            $("#project_repo_dir").attr("value",'{{project_dir}}source/'+response["project_english_name"]+'/' + default_service_name);
 				},
-			});	
+			});
 	   }
 	   else{
-		   $('#project_service').attr("disabled",true);
+		   $('#service_id').attr("disabled",true);
 	   }
-
 }
 
-function oBtServiceSelect(model,ids){
- 	   $('#server').removeAttr("disabled");
-	   var obj = document.getElementById("project_service"); 
+
+function oBtServiceSelect(){
+ 	  // $('#server').removeAttr("disabled");
+	   var obj = document.getElementById("service_id");
 	   var index = obj.selectedIndex;
 	   var sId = obj.options[index].value;
-	   if ( sId  > 0){	 
-			$.ajax({
-				dataType: "JSON",
-				url:'/assets_server_ip/', //请求地址
-				type:"POST",  //提交类似
-				data:{
-					"query":model,
-					"id":sId
-				},
-				success:function(response){
-					var binlogHtml = '<select multiple  name="server" id="server"  required>'
-					var selectHtml = '';
-					for (var i=0; i <response["data"].length; i++){
-						 selectHtml += '<option name="server" value="'+ response["data"][i]["id"] +'">' + response["data"][i]["ip"] + '</option>'
-					};
-					binlogHtml =  binlogHtml + selectHtml + '</select>';
-					document.getElementById("server").innerHTML= binlogHtml;	
-					$('#server').multiselect('destroy');
- 				    $('#server').multiselect({
-				        enableClickableOptGroups: true,
-				        enableCollapsibleOptGroups: true,
-				        includeSelectAllOption: true,
-				       	enableFiltering: true,            
-				    });	 						
-				},
-			});	
+	   var sValue = obj.options[index].text;
+       var base_dir='{{ project_dir }}';
+       pName = obj.getAttribute("title");
+	   if ( sId  > 0){
+	       var project_repo_dir = base_dir + "source/" + pName + '/' + sValue;
+           var project_dir = base_dir + 'release/' + pName + '/' + sValue;
+           $("#project_repo_dir").attr("value", project_repo_dir + '/');
+	       $("#project_dir").attr("value",project_dir + '/');
 	   }
 	   else{
-		   $('#server option:selected').empty();
-		   $('#server').attr("disabled",true);
-	   }
-
-}
-
-
-function oBtEnvType() {
-	   var obj = document.getElementById("project_env"); 
-	   var index = obj.selectedIndex;
-	   var value = obj.options[index].value; 
-	   if (value=="uat"){
-		   document.getElementById("extConfig").style.display = "none";
-	   }
-	   else {
-		   document.getElementById("extConfig").style.display = "none";
+	       window.wxc.xcConfirm("服务类型选择错误", window.wxc.xcConfirm.typeEnum.error);
 	   }
 }
-function oBtRepoType() {
-	   var obj = document.getElementById("project_repertory"); 
-	   var index = obj.selectedIndex;
-	   var value = obj.options[index].value; 
-	   if (value=="svn"){
-		   document.getElementById("repo_type").style.display = "";
-	   }
-	   else {
-		   document.getElementById("repo_type").style.display = "";
-	   }
-}
+
 
 function addDeployProject(obj) {	
 	var btnObj = $(obj);
-	var required = ["project_id","project_service","project_env","project_repertory","project_address","server","project_user","dir"];
+	var required = ["project_id","service_id","project_env","project_address","project_repo_passwd","project_repo_user","jenkins_id","k8s_id","project_repo_dir"];
 	btnObj.attr('disabled',true);
 		var form = document.getElementById('add_deploy_project');
 		for (var i = 0; i < form.length; ++i) {
@@ -341,33 +308,34 @@ function addDeployProject(obj) {
 				btnObj.removeAttr('disabled');
 				return false;
 			};					
-		};				
+		};
+		if (!check_service_port('project_service_port') || !check_service_port('project_debug_port')){
+				window.wxc.xcConfirm("服务端口填写数字,且数字只能为20000~50000", window.wxc.xcConfirm.typeEnum.error);
+				btnObj.removeAttr('disabled');
+				return false;
+        }
+
 		var editor = ace.edit("project_local_command");
 	    var project_local_command = editor.getSession().getValue(); 
-	    var formData = new FormData();	
-		var serverList = new Array();
-		$("#server option:selected").each(function () {
-			serverList.push($(this).text())
-		})	    
+	    var formData = new FormData();
 	    formData.append('project_env',$('#project_env').val());	
-	    formData.append('project_name',$('#project_name').val());	 
-	    formData.append('project_address',$('#project_address').val());	
-	    formData.append('project_user',$('#project_user').val());
-	    formData.append('dir',$('#dir').val());		
-	    formData.append('project_remote_command',$('#project_remote_command').val());
-	    formData.append('project_exclude',$('#project_exclude').val());	
-	    formData.append('project_dir',$('#project_dir').val());	
+	    formData.append('project_address',$('#project_address').val());
+	    formData.append('project_dir',$('#project_dir').val());
 	    formData.append('project_repo_dir',$('#project_repo_dir').val());
 	    formData.append('project_repo_user',$('#project_repo_user').val());	
 	    formData.append('project_repo_passwd',$('#project_repo_passwd').val());
-	    formData.append('project_audit_group',$('#project_audit_group  option:selected').val());	
+	    formData.append('project_branch',$('#project_branch').val());
 	    formData.append('project_id',$('#project_id option:selected').val());
-	    formData.append('project_service',$('#project_service option:selected').val());
-	    formData.append('project_repertory',$('#project_repertory option:selected').val());
-	    formData.append('project_model',$('#project_model option:selected').val());	
-	    formData.append('server',serverList);	
+	    formData.append('service_id',$('#service_id option:selected').val());
+	    formData.append('project_repertory',$('#project_repertory').val());
 	    formData.append('project_local_command',project_local_command);
 	    formData.append('project_type',project_type);
+	    formData.append('jenkins_id',$('#jenkins_id option:selected').val());
+	    formData.append('k8s_id',$('#k8s_id option:selected').val());
+	    formData.append('project_service_port',$('#project_service_port').val());
+	    formData.append('project_debug_port',$('#project_debug_port').val());
+	    formData.append('project_env_var',$('#project_env_var').val());
+        formData.append('project_mount_path',$('#project_mount_path').val());
 
 		$.ajax({
 /* 				dataType: "JSON", */

@@ -9,7 +9,7 @@
 <div id="page-wrapper">
     <div class="row">
          <div class="col-lg-12">
-              <h1 class="page-header"><i class="fa fa-github"></i><code>{{project.project_name}}</code> 项目部署</h1>
+              <h1 class="page-header"><i class="fa fa-github"></i><code>{{project.project.project_name}}</code> 项目部署</h1>
          </div>
                 <!-- /.col-lg-12 -->
     </div>
@@ -26,82 +26,31 @@
                                     <form role="form" id="deployRun" class="main form-horizontal" >{% csrf_token %}
 										<fieldset>															
 											<div class="form-group">
-												 <label class="col-sm-2 control-label">项目名称</label>
+												 <label class="col-sm-4 control-label">项目名称</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" name="project_name" value="{{project.project_name}}"  class="input-xlarge" disabled/>
+												 	<input type="text" class="form-control" value="{{project.project.project_name}}"  class="input-xlarge" disabled/>
+                                                    <input type="hidden" class="form-control" name="project_id" value="{{project.project_id}}" disabled/>
 												 	<input type="hidden" class="form-control" name="project_uuid" value="{{project.project_uuid}}" disabled/>
+                                                    <input type="hidden" class="form-control" name="project_model" value="online" disabled />
 												 </div>
 											</div>
-		                                     <div class="form-group">
-		                                            <label class="col-sm-2 control-label">目标服务器</label>
-		                                            <div class="col-sm-6">
-			                                            <select multiple class="selectpicker" data-live-search="true" name="project_server" required>
-			                                            	{% for ds in serverList %}
-			                                            		<option name="project_server" selected="selected"  value="{{ds.server}}">{{ds.server}}</option>
-			                                            	{% endfor %}
-			                                            </select>
-		                                            </div>
-		                                      </div> 											
-											{% if project.project_model == 'branch' and project.project_repertory == 'git' %}																
 											<div class="form-group">
-												 <label class="col-sm-2 control-label">分支</label>
+												 <label class="col-sm-4 control-label">服务模块</label>
 												 <div class="col-sm-6">
-												   <select class="form-control" name="project_branch"  id="branch_choice"  onchange="javascript:oBtBranchChoice();">
-															{% for ds in bList %}
-																{% if ds.status == 1 %}
-																	<option value="{{ds.name}}" selected="selected" name="project_branch">{{ds.value}}</option>
-																{% else %}
-																	<option value="{{ds.name}}" name="project_branch">{{ds.value}}</option>
-																{% endif %}
-															{% endfor %}							   		
-													</select>							 	
+                                                    <input type="text" class="form-control" name="service_id" value="{{project.service.service_name}}"  class="input-xlarge" disabled/>
 												 </div>
-											</div>													
-											
-											<div class="form-group">
-												 <label class="col-sm-2 control-label">版本选择</label>
-												 <div class="col-sm-6">
-												   <select class="form-control" name="project_version" id="project_version" >
-												   		<option selected="selected" value="" name="project_version" >请选择版本</option>
-															{% for ds in vList %}
-																<option value="{{ds.comid}}" name="project_version">{{ds.ver}} - {{ds.desc}} - {{ds.user}} </option>
-															{% endfor %}						   		
-													</select>	
-												</div>
 											</div>
-											{% elif project.project_model == 'tag' and  project.project_repertory == 'git' %}
 											<div class="form-group">
-												 <label class="col-sm-2 control-label">标签</label>
+												 <label class="col-sm-4 control-label">版本分支</label>
 												 <div class="col-sm-6">
-												   <select class="form-control" name="project_branch"  >
-												   		<option value="" name="project_branch">请选择Tag</option>
-															{% for ds in bList %}
-																<option value="{{ds.name}}" name="project_branch">{{ds.value}}</option>
-															{% endfor %}							   		
-													</select>							 	
+                                                    <input type="text" class="form-control" name="project_branch" value="{{project.project_branch}}"  class="input-xlarge" disabled/>
 												 </div>
-											</div>	
-											{% else %}
-												<div class="form-group" style="display:none;">
-													 <label class="col-sm-2 control-label">分支</label>
-													 <div class="col-sm-6">													   
-														<input type="hidden" name="project_branch"	value="trunk" disabled/>					 	
-													 </div>
-												</div>													
-												
-												<div class="form-group">
-													 <label class="col-sm-2 control-label">版本选择</label>
-													 <div class="col-sm-6">
-													   <select class="form-control" name="project_version" id="project_version" >
-													   		<option selected="selected" value="" name="project_version" >请选择版本</option>
-																{% for ds in vList %}
-																	<option value="{{ds.comid}}" name="project_version">{{ds.ver}} - {{ds.desc}} - {{ds.user}} </option>
-																{% endfor %}						   		
-														</select>	
-													</div>
-												</div>																							
-											{% endif %}																																													
-											
+											</div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4 control-label">jenkins-任务</label>
+                                                <div class="col-sm-6">
+                                                </div>
+                                            </div>
 											</fieldset>
 											<legend></legend>
 											<div class="form-group">
@@ -120,12 +69,12 @@
 								        <!-- SmartWizard html -->
 								        <div id="smartwizard">
 								            <ul>
-								                <li><a href="#get_code">获取代码<br /><small>pull code</small></a></li>
+								                <li><a href="#run_jenkins">配置jenkins<br /><small>init jenkins</small></a></li>
 								                {% if project.project_type == 'compile' %}
 								                <li><a href="#deploy_code">编译代码<br /><small>deploy code</small></a></li>
 								                {% endif %}
-								                <li><a href="#tar_code">打包代码<br /><small>pack code</small></a></li>
-								                <li><a href="#rsync_code">部署代码<br /><small>rsync code</small></a></li>
+								                <li><a href="#run_k8s">配置kubernetes<br /><small>init kubernetes</small></a></li>
+								                <li><a href="#deploy_service">部署应用服务<br /><small>deploy application</small></a></li>
 								                {% if project.project_remote_command %}
 												<li><a href="#cmd_code">执行命令<br /><small>remote command</small></a></li>
 												{% endif %}
@@ -251,9 +200,9 @@
 	            			$('#smartwizard').smartWizard("next");
 	            		}
 						{% endif %}
-						else if(result["msg"].indexOf("[RSYNC start") == 0){
+						else if(result["msg"].indexOf("[Jenkins start") == 0){
 	            			$('#smartwizard').smartWizard("next");
-	            		}else if(result["msg"].indexOf("[CMD start") == 0){
+	            		}else if(result["msg"].indexOf("[Kubernetes start") == 0){
 	            			$('#smartwizard').smartWizard("next");
 	            		}
 	            		$("#result").append("<p>"+result["msg"]+"</p>"); 

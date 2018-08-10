@@ -37,7 +37,7 @@ def register(request):
                     user.set_password(request.POST.get('password'))
                     user.save()
                     return JsonResponse({"code":200,"data":None,"msg":"用户注册成功"})
-            except Exception,e:
+            except Exception as e:
                 return JsonResponse({"code":500,"data":None,"msg":"用户注册失败"}) 
         else:return JsonResponse({"code":500,"data":None,"msg":"密码不一致，用户注册失败。"})
         
@@ -74,7 +74,7 @@ def user_center(request):
                 user.set_password(request.POST.get('password'))
                 user.save()
                 return JsonResponse({"code":200,"data":None,"msg":"密码修改成功"})
-            except Exception,e:
+            except Exception as e:
                 return JsonResponse({"code":500,"data":None,"msg":"密码修改失败：%s" % str(e)}) 
         else:return JsonResponse({"code":500,"data":None,"msg":"密码不一致，密码修改失败。"})      
            
@@ -84,7 +84,7 @@ def user(request,uid):
     if request.method == "GET":
         try:
             user = User.objects.get(id=uid)
-        except Exception,e:
+        except Exception as e:
             return render(request,'users/user_info.html',{"user":request.user,
                                                              "errorInfo":"用户不存在，可能已经被删除."})         
         #获取用户权限列表
@@ -156,7 +156,7 @@ def user(request,uid):
                     group = Group.objects.get(id=groupId)
                     user.groups.remove(group)
             return HttpResponseRedirect('/user/{uid}/'.format(uid=uid)) 
-        except Exception,e:
+        except Exception as e:
             return  render(request,'users/user_info.html',{"user":request.user,"errorInfo":"用户资料修改错误：%s" % str(e)})   
             
     elif request.method == "PUT" and request.user.is_superuser:
@@ -169,7 +169,7 @@ def user(request,uid):
                 user.set_password(password)
                 user.save()
                 return JsonResponse({"code":200,"data":None,"msg":"密码修改成功"})
-            except Exception,e:
+            except Exception as e:
                 return JsonResponse({"code":500,"data":None,"msg":"密码修改失败：%s" % str(e)}) 
         else:return JsonResponse({"code":500,"data":None,"msg":"密码不一致，密码修改失败。"})   
 
@@ -193,7 +193,7 @@ def group(request,gid):
                 if ds.id in groupPerm:ds.status = 1
                 else:ds.status = 0
             return render(request,'users/group_info.html',{"user":request.user,"permList":permList,"group":group},) 
-        except Exception,e: 
+        except Exception as e:
             return render(request,'users/group_info.html',
                                       {"user":request.user,"errorInfo":"用户组资料修改错误：%s" % str(e)}, 
                                       )  
@@ -221,14 +221,14 @@ def group(request,gid):
                     perm = Permission.objects.get(id=permId)
                     Group.objects.get(id=gid).permissions.remove(perm) 
             return HttpResponseRedirect('/group/{gid}/'.format(gid=gid)) 
-        except Exception,e:
+        except Exception as e:
             return render(request,'users/user_info.html',{"user":request.user,"errorInfo":"用户资料修改错误：%s" % str(e)})         
 
 @login_required       
 def user_server(request,uid):  
     try:
         user = User.objects.get(id=uid)
-    except Exception,e:
+    except Exception as e:
         return JsonResponse({"code":500,"data":None,"msg":"主机分配失败：%s" % str(e)})
     if request.method == "POST":
         sList = []
@@ -263,6 +263,6 @@ def user_server(request,uid):
             #删除去掉的主机
             for s in delServerList:
                 User_Server.objects.get(user_id=user.id,server_id=s).delete()
-        except Exception,e:
+        except Exception as e:
             return JsonResponse({"code":500,"data":None,"msg":"主机分配失败：%s" % str(e)})  
         return JsonResponse({"code":200,"data":None,"msg":"主机分配成功"}) 

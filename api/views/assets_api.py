@@ -239,8 +239,119 @@ def zone_detail(request, id,format=None):
             return Response(status=status.HTTP_403_FORBIDDEN)
         snippet.delete()
         recordAssets.delay(user=str(request.user),content="删除机房资产：{zone_name}".format(zone_name=snippet.zone_name),type="zone",id=id) 
-        return Response(status=status.HTTP_204_NO_CONTENT)   
-    
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'POST'])
+@permission_required('OpsManage.can_add_jenkins_assets',raise_exception=True)
+def jenkins_list(request, format=None):
+    """
+    List all order, or create a server assets order.
+    """
+    if request.method == 'GET':
+        snippets = Jenkins_Assets.objects.all()
+        serializer = serializers.JenkinsSerializer(snippets, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = serializers.JenkinsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            recordAssets(user=str(request.user),
+                               content="添加jenkins资产：{jenkins_name}".format(jenkins_name=request.data.get("jenkins_name")),
+                               type="jenkins", id=serializer.data.get('id'))
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_required('OpsManage.can_change_jenkins_assets', raise_exception=True)
+def jenkins_detail(request, id, format=None):
+    """
+    Retrieve, update or delete a server assets instance.
+    """
+    try:
+        snippet = Jenkins_Assets.objects.get(id=id)
+    except Jenkins_Assets.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = serializers.JenkinsSerializer(snippet)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        old_name = snippet.jenkins_name
+        serializer = serializers.JenkinsSerializer(snippet, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            recordAssets(user=str(request.user),
+                               content="修改jenkins配置：{old_name} -> {jenkins_name}".format(old_name=old_name,
+                                                                                 jenkins_name=request.data.get(
+                                                                                     "jenkins_name")), type="jenkins", id=id)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        if not request.user.has_perm('OpsManage.can_delete_jenkins_assets'):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        snippet.delete()
+        recordAssets(user=str(request.user), content="删除jenkins配置：{jenkins_name}".format(jenkins_name=snippet.jenkins_name),
+                           type="jenkins", id=id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST'])
+@permission_required('OpsManage.can_add_k8s_assets',raise_exception=True)
+def k8s_list(request, format=None):
+    """
+    List all order, or create a server assets order.
+    """
+    if request.method == 'GET':
+        snippets = K8s_Assets.objects.all()
+        serializer = serializers.K8sSerializer(snippets, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = serializers.K8sSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            recordAssets(user=str(request.user),
+                               content="添加k8s资产：{k8s_name}".format(k8s_name=request.data.get("k8s_name")),
+                               type="k8s", id=serializer.data.get('id'))
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_required('OpsManage.can_change_k8s_assets', raise_exception=True)
+def k8s_detail(request, id, format=None):
+    """
+    Retrieve, update or delete a server assets instance.
+    """
+    try:
+        snippet = K8s_Assets.objects.get(id=id)
+    except K8s_Assets.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = serializers.K8sSerializer(snippet)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        old_name = snippet.k8s_name
+        serializer = serializers.K8sSerializer(snippet, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            recordAssets(user=str(request.user),
+                               content="修改k8s配置：{old_name} -> {k8s_name}".format(old_name=old_name,
+                                                                                 k8s_name=request.data.get(
+                                                                                     "k8s_name")), type="k8s", id=id)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        if not request.user.has_perm('OpsManage.can_delete_k8s_assets'):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        snippet.delete()
+        recordAssets(user=str(request.user), content="删除k8s配置：{k8s_name}".format(k8s_name=snippet.k8s_name),
+                           type="k8s", id=id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 @api_view(['GET', 'POST' ])
 @permission_required('OpsManage.can_add_line_assets',raise_exception=True)
 def line_list(request,format=None):

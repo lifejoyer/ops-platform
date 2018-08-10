@@ -25,3 +25,6 @@ xlrd
 chardet
 requests
 xlwt
+kubernetes-py
+jenkinsapi
+python-jenkins

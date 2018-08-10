@@ -1,7 +1,8 @@
 #!/usr/bin/env python  
-# _#_ coding:utf-8 _*_  
+# _*_ coding:utf-8 _*_
 from django.db import models
 import sys
+from imp import reload
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
@@ -193,6 +194,7 @@ class Service_Assets(models.Model):
     project_address = models.CharField(max_length=100, null=True, blank=True)
     project_repo_user = models.CharField(max_length=20, null=True, blank=True)
     project_repo_passwd = models.CharField(max_length=64,null=True, blank=True)
+
     class Meta:
         db_table = 'opsmanage_service_assets'
         permissions = (
@@ -204,7 +206,42 @@ class Service_Assets(models.Model):
         unique_together = (("project", "service_name"))
         verbose_name = '业务分组表'  
         verbose_name_plural = '业务分组表'  
-                  
+
+
+class Jenkins_Assets(models.Model):
+    jenkins_name = models.CharField(max_length=50, unique=True)
+    jenkins_host = models.CharField(max_length=100, unique=True, verbose_name='jenkins主机地址')
+    jenkins_user = models.CharField(max_length=20, verbose_name='jenkins用户名称')
+    jenkins_token = models.CharField(max_length=100, blank=True, null=True, verbose_name='jenkins api_token')
+
+    class Meta:
+        db_table = 'opsmanage_jenkins_assets'
+        permissions = (
+            ("can_read_jenkins_assets", "读取jenkins资产权限"),
+            ("can_change_jenkins_assets", "更改jenkins资产权限"),
+            ("can_add_jenkins_assets", "添加jenkins资产权限"),
+            ("can_delete_jenkins_assets", "删除jenkins资产权限"),
+        )
+        verbose_name = 'jenkins资产表'
+        verbose_name_plural = 'jenkins资产表'
+
+
+class K8s_Assets(models.Model):
+    k8s_name = models.CharField(max_length=50, unique=True)
+    k8s_host = models.CharField(max_length=100, unique=True, verbose_name='kubernetes主机地址')
+    k8s_token = models.CharField(max_length=1000, blank=True, null=True, verbose_name='kubernetes token')
+
+    class Meta:
+        db_table = 'opsmanage_k8s_assets'
+        permissions = (
+            ("can_read_k8s_assets", "读取k8s资产权限"),
+            ("can_change_k8s_assets", "更改k8s资产权限"),
+            ("can_add_k8s_assets", "添加k8s资产权限"),
+            ("can_delete_k8s_assets", "删除k8s资产权限"),
+        )
+        verbose_name = 'kubernetes资产表'
+        verbose_name_plural = 'kubernetes资产表'
+
 
 class Zone_Assets(models.Model):  
     zone_name = models.CharField(max_length=100,unique=True) 
@@ -268,29 +305,36 @@ class Project_Config(models.Model):
                           ('git',u'git'),
                           ('svn',u'svn'),
                           )   
-    deploy_model_choices =  (
+    deploy_model_choices = (
                           ('branch',u'branch'),
                           ('tag',u'tag'),
                           )  
-    project = models.ForeignKey('Project_Assets',related_name='project_config', on_delete=models.CASCADE) 
+    project = models.ForeignKey('Project_Assets', related_name='project_config', on_delete=models.CASCADE)
     project_env = models.CharField(max_length=50,verbose_name='项目环境',default=None)
-    project_name =  models.CharField(max_length=100,verbose_name='项目名称',default=None)
-    project_service = models.SmallIntegerField(verbose_name='业务类型')
-    project_type = models.CharField(max_length=10,verbose_name='编译类型')
+    service = models.ForeignKey('Service_Assets',on_delete=models.CASCADE)
+    project_type = models.CharField(max_length=10,verbose_name='编译类型',blank=True,null=True)
     project_local_command = models.TextField(blank=True,null=True,verbose_name='部署服务器要执行的命令',default=None)
-    project_repo_dir = models.CharField(max_length=100,verbose_name='本地仓库目录',default=None)
-    project_dir = models.CharField(max_length=100,verbose_name='代码目录',default=None)
+    project_repo_dir = models.CharField(max_length=100,verbose_name='本地仓库目录',blank=True,null=True,default=None)
+    project_dir = models.CharField(max_length=100,verbose_name='代码目录',blank=True,null=True,default=None)
     project_exclude = models.TextField(blank=True,null=True,verbose_name='排除文件',default=None)
-    project_address = models.CharField(max_length=100,verbose_name='版本仓库地址',default=None)
+    project_address = models.CharField(max_length=100,verbose_name='版本仓库地址',blank=True,null=True,default=None)
     project_uuid = models.CharField(max_length=50,verbose_name='唯一id')
     project_repo_user = models.CharField(max_length=50,verbose_name='仓库用户名',blank=True,null=True)
     project_repo_passwd = models.CharField(max_length=50,verbose_name='仓库密码',blank=True,null=True)
-    project_repertory = models.CharField(choices=project_repertory_choices,max_length=10,verbose_name='仓库类型',default=None)
+    project_repertory = models.CharField(max_length=10,verbose_name='仓库类型',blank=True,null=True,default=None)
     project_status = models.SmallIntegerField(verbose_name='是否激活',blank=True,null=True,default=None)
     project_remote_command = models.TextField(blank=True,null=True,verbose_name='部署之后执行的命令',default=None)
-    project_user = models.CharField(max_length=50,verbose_name='项目文件宿主',default=None) 
-    project_model = models.CharField(choices=deploy_model_choices,max_length=10,verbose_name='上线类型',default=None)
+    project_user = models.CharField(blank=True,null=True,max_length=50,verbose_name='项目文件宿主',default=None)
+    project_model = models.CharField(max_length=10,verbose_name='上线类型',blank=True,null=True,default=None)
     project_audit_group = models.SmallIntegerField(verbose_name='项目授权组',blank=True,null=True,default=None)
+    jenkins = models.ForeignKey('Jenkins_Assets', on_delete=models.PROTECT,default=1)
+    k8s = models.ForeignKey('K8s_Assets', on_delete=models.PROTECT,default=1)
+    project_branch = models.CharField(max_length=50, verbose_name='仓库分支', blank=True, null=True)
+    project_name = models.CharField(max_length=100,verbose_name='项目名称', blank=True, null=True, default=None)
+    project_service_port = models.CharField(max_length=10, verbose_name='对外服务端口', blank=True, null=True, default=None)
+    project_debug_port = models.CharField(max_length=10, verbose_name='debug端口', blank=True, null=True, default=None)
+    project_env_var = models.CharField(max_length=1000,verbose_name='容器环境变量', blank=True, null=True, default=None)
+    project_mount_path = models.CharField(max_length=500, verbose_name='挂载路径', blank=True, null=True, default=None)
     '''自定义权限'''
     class Meta:
         db_table = 'opsmanage_project_config'
@@ -300,7 +344,7 @@ class Project_Config(models.Model):
             ("can_add_project_config", "添加项目部署权限"),
             ("can_delete_project_config", "删除项目部署权限"),               
         )
-        unique_together = (("project_env", "project","project_name"))
+        unique_together = (("project_env", "project", "service"))
         verbose_name = '项目管理表'  
         verbose_name_plural = '项目管理表'  
 
@@ -313,6 +357,12 @@ class Log_Project_Config(models.Model):
     create_time = models.DateTimeField(auto_now_add=True,blank=True,null=True,verbose_name='执行时间')
     class Meta:
         db_table = 'opsmanage_log_project_config'
+        permissions = (
+            ("can_read_log_project_config", "读取项目部署日志权限"),
+            ("can_change_log_project_config", "更改项目部署日志权限"),
+            ("can_add_log_project_config", "添加项目部署日志权限"),
+            ("can_delete_log_project_config", "删除项目部署日志权限"),
+        )
         verbose_name = '项目配置操作记录表'  
         verbose_name_plural = '项目配置操作记录表'                
         
@@ -689,4 +739,18 @@ class SQL_Audit_Control(models.Model):
             ("can_delete_sql_audit_control", "删除SQL审核配置权限"),              
         )
         verbose_name = 'SQL审核配置'  
-        verbose_name_plural = 'SQL审核配置' 
+        verbose_name_plural = 'SQL审核配置'
+
+class Deploy_Record(models.Model):
+    project_name = models.CharField(max_length=100, verbose_name='项目名称')
+    service_name = models.CharField(max_length=100, null=True,blank=True,verbose_name='服务名称')
+    image_name = models.CharField(max_length=200, verbose_name='docker镜像名称')
+    image_version = models.CharField(max_length=50, verbose_name='docker镜像版本号')
+    is_online = models.SmallIntegerField(blank=True,null=True,verbose_name='上线或回滚')
+    run_env = models.CharField(max_length=20, verbose_name='运行环境')
+    user = models.CharField(max_length=50, blank=True,null=True,verbose_name='发布的用户')
+    create_time = models.CharField(max_length=25, verbose_name='发布时间')
+    class Meta:
+        db_table = 'opsmanage_deploy_record'
+        verbose_name = '代码发布记录'
+        verbose_name_plural = '代码发布记录'

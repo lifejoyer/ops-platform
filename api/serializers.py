@@ -38,11 +38,25 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ('id','name')
-          
+
+
 class ZoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Zone_Assets
-        fields = ('id','zone_name','zone_network','zone_contact','zone_number')         
+        fields = ('id','zone_name','zone_network','zone_contact','zone_number')
+
+
+class JenkinsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Jenkins_Assets
+        fields = ('id','jenkins_name','jenkins_host','jenkins_user','jenkins_token')
+
+
+class K8sSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = K8s_Assets
+        fields = ('id','k8s_name','k8s_host','k8s_token')
+
 
 class LineSerializer(serializers.ModelSerializer):
     class Meta:
@@ -83,14 +97,18 @@ class AssetsLogsSerializer(serializers.ModelSerializer):
         
 
 class ProjectConfigSerializer(serializers.ModelSerializer): 
-    project_number = serializers.StringRelatedField(many=True)
+    # project_number = serializers.StringRelatedField(many=True)
+    project_english_name = serializers.CharField(source='project.project_english_name', read_only=True)
+    service_name = serializers.CharField(source='service.service_name', read_only=True)
+    jenkins_host = serializers.CharField(source='jenkins.jenkins_host', read_only=True)
+    k8s_host = serializers.CharField(source='k8s.k8s_host', read_only=True)
     class Meta:
         model = Project_Config
-        fields = ('id','project_env','project_name','project_local_command',
-                  'project_repo_dir','project_dir','project_exclude',
-                  "project_type",'project_address','project_repertory',
-                  'project_status','project_remote_command','project_user',
-                  'project_uuid','project_number')   
+        fields = ('id','project_env','project_english_name','project_local_command',
+                  'project_repo_dir','project_debug_port','project_env_var',
+                  "project_branch",'project_address','project_repertory',
+                  'project_status','project_repo_user','project_mount_path',
+                  'project_uuid','k8s_host','jenkins_host','service_name')
 
 class DeployLogsSerializer(serializers.ModelSerializer):
     class Meta:

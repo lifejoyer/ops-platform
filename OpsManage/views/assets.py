@@ -39,9 +39,18 @@ def getBaseAssets():
     try:
         projectList = Project_Assets.objects.all()
     except:
-        projectList = []          
+        projectList = []
+    try:
+        k8sList = K8s_Assets.objects.all()
+    except:
+        k8sList = []
+    try:
+        jenkinsList = Jenkins_Assets.objects.all()
+    except:
+        jenkinsList = []
     return {"group":groupList,"service":serviceList,"zone":zoneList,
-            "line":lineList,"raid":raidList,'project':projectList}
+            "line":lineList,"raid":raidList,'project':projectList,
+            "k8s":k8sList,"jenkins":jenkinsList}
 
 @login_required(login_url='/login')
 @permission_required('OpsManage.can_read_assets',login_url='/noperm/') 

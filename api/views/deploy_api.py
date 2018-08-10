@@ -10,8 +10,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from OpsManage.tasks.deploy import recordProject
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import login_required
 from rest_framework import generics
-from django.db.models import Q 
+from django.db.models import Q
+from django.http import JsonResponse
 
 @api_view(['GET', 'POST' ])
 @permission_required('OpsManage.can_add_project_config',raise_exception=True)
@@ -43,13 +45,16 @@ def deploy_detail(request, id,format=None):
     elif request.method == 'DELETE':
         if not request.user.has_perm('OpsManage.delete_project_config'):
             return Response(status=status.HTTP_403_FORBIDDEN)
-        recordProject.delay(project_user=str(request.user),project_id=id,project_name=snippet.project.project_name,project_content="删除项目")
+        recordProject(project_user=str(request.user),project_id=id,project_name=snippet.project.project_name,project_content="删除项目")
         snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT) 
-    
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 @api_view(['GET', 'DELETE'])
-@permission_required('OpsManage.delete_log_project_config',raise_exception=True)
+@permission_required('OpsManage.can_delete_log_project_config',raise_exception=True)
 def deployLogs_detail(request, id,format=None):
+    """
+    Retrieve, update or delete a server assets instance.
+    """
     """
     Retrieve, update or delete a server assets instance.
     """
@@ -57,17 +62,18 @@ def deployLogs_detail(request, id,format=None):
         snippet = Log_Project_Config.objects.get(id=id)
     except Log_Project_Config.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
- 
+
     if request.method == 'GET':
         serializer = serializers.DeployLogsSerializer(snippet)
         return Response(serializer.data)
-     
+
     elif request.method == 'DELETE':
-        if not request.user.has_perm('OpsManage.delete_log_project_config'):
+        if not request.user.has_perm('OpsManage.can_delete_log_project_config'):
             return Response(status=status.HTTP_403_FORBIDDEN)
         snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)     
-    
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 # class OrderList(generics.ListAPIView):
 #     serializer_class = serializers.DeployOrderSerializer 
 #     def get_queryset(self):
