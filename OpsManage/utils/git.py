@@ -3,6 +3,8 @@
 '''git版本控制方法'''
 
 import commands,os,sys
+import subprocess
+from OpsManage.utils import base
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -106,4 +108,15 @@ class GitTools(object):
         if result[0] == 0 and cid: 
             cmd = "cd {path} &&  git show {cid}".format(path=path,cid=cid)    
             result = commands.getstatusoutput(cmd)       
-        return  result              
+        return result
+
+    def tag_number(self, path, bName):
+        try:
+            tagList=[]
+            res = subprocess.check_output("cd {path} && git checkout {branch} && git pull && git tag|tail -n 5".format(path=path,branch=bName), stderr=subprocess.STDOUT, shell=True)
+            res = res.splitlines()
+            for i in range(0, len(res)):
+                if base.is_version(res[i]): tagList.append(res[i])
+            return tagList
+        except Exception as e:
+            return False

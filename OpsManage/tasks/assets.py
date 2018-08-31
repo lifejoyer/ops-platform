@@ -7,7 +7,7 @@ from OpsManage.models import Log_Assets,Global_Config,Assets,Email_Config
 from django.contrib.auth.models import User
 
 
-# @task
+@task  
 def recordAssets(user,content,type,id=None):
     try:
         config = Global_Config.objects.get(id=1)

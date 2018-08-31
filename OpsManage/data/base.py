@@ -62,7 +62,7 @@ class MySQLPool(APBase):
                                       cursorclass=DictCursor)  
                 APBase.MYSQL_POOLS[self.poolKeys] = pool   
                 return APBase.MYSQL_POOLS.get(self.poolKeys).connection()  
-            except Exception as ex:
+            except Exception, ex:
                 logger.error(msg="创建字典类型连接池失败: {ex}".format(ex=ex))
                 return str(ex)
             
@@ -75,7 +75,7 @@ class MySQLPool(APBase):
                                       db=dbName,use_unicode=False,charset='utf8')  
                 APBase.MYSQL_POOLS[self.poolKeys] = pool   
                 return APBase.MYSQL_POOLS.get(self.poolKeys).connection()  
-            except Exception as ex:
+            except Exception, ex:
                 logger.error(msg="创建列表类型连接池失败: {ex}".format(ex=ex))
                 return str(ex)
    
@@ -85,7 +85,7 @@ class MySQLPool(APBase):
             count = self._cursor.execute(sql)   
             result = self._cursor.fetchall()   
             return (count,result)  
-        except Exception as ex:
+        except Exception,ex:
             logger.error(msg="MySQL查询失败: {ex} sql:{sql}".format(ex=ex,sql=sql))
             return str(ex)
 
@@ -96,7 +96,7 @@ class MySQLPool(APBase):
             count = self._cursor.execute(sql)   
             result = self._cursor.fetchone()   
             return (count,result)  
-        except Exception as ex:
+        except Exception,ex:
             logger.error(msg="MySQL查询失败: {ex} sql:{sql}".format(ex=ex,sql=sql))
             return str(ex)
 
@@ -118,7 +118,7 @@ class MySQLPool(APBase):
                 colName.append(i[0])            
             result = self._cursor.fetchmany(size=num) 
             return (count,result,colName) 
-        except Exception as ex:
+        except Exception,ex:
             logger.error(msg="MySQL查询失败: {ex} sql:{sql}".format(ex=ex,sql=sql))
             return str(ex)   
     
@@ -134,7 +134,7 @@ class MySQLPool(APBase):
             result = self._cursor.fetchmany(size=num)           
             self._conn.commit()
             return (count,result,colName) 
-        except Exception as ex:
+        except Exception, ex:
             logger.error(msg="MySQL执行sql失败: {ex} sql:{sql}".format(ex=ex,sql=sql))
             return str(ex)
     
@@ -218,7 +218,7 @@ class MySQL(object):
         try:
             conn = MySQLdb.connect(host,user,passwd,dbname,port)          
             return conn
-        except MySQLdb.Error as ex:
+        except MySQLdb.Error,ex:  
             return False
                  
     def execute(self,sql,num=1000): 
@@ -232,7 +232,7 @@ class MySQL(object):
             result = self._cursor.fetchmany(size=num)           
             self._conn.commit()
             return (count,result,colName) 
-        except Exception as ex:
+        except Exception, ex:
             logger.error(msg="MySQL执行失败: {ex} sql:{sql}".format(ex=ex,sql=sql))
             self.conn.rollback()
             count = 0 
@@ -246,7 +246,7 @@ class MySQL(object):
             count = self._cursor.execute(sql)   
             result = self._cursor.fetchall()   
             return count,result
-        except Exception as ex:
+        except Exception,ex:
             logger.error(msg="MySQL查询失败: {ex} sql:{sql}".format(ex=ex,sql=sql))
             count = 0
             result = None
@@ -258,7 +258,7 @@ class MySQL(object):
             count = self._cursor.execute(sql)   
             result = self._cursor.fetchone()   
             return count,result 
-        except Exception as ex:
+        except Exception,ex:
             logger.error(msg="MySQL查询失败: {ex} sql:{sql}".format(ex=ex,sql=sql))
             result = None
         finally:
@@ -305,12 +305,12 @@ class MySQL(object):
         try:
             self._cursor.close()
             self._conn.close()
-        except Exception as ex:
-            print(ex)
+        except Exception,ex:
+            print ex
             
 if __name__=='__main__':   
     try:
-        mysql = MySQL('192.168.1.122',3306,'ops','abc+123','opsmanage')
-    except Exception as ex:
-        print(ex)
-    print(mysql.getVariables())
+        mysql = MySQL('192.168.88.230',33061,'mysql','root','welliam')
+    except Exception,ex:
+        print ex 
+    print mysql.getVariables()

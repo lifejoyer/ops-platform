@@ -11,11 +11,11 @@ class AssetsSource(object):
         serverList = []
         for assets in Assets.objects.filter(assets_type__in=["server","vmser","switch","route"]):
             try:
-                service = Service_Assets.objects.get(id=assets.business).service_name
+                service =  Service_Assets.objects.get(id=assets.business).service_name
             except:
                 service = '未知'
             try:
-                project = Project_Assets.objects.get(id=assets.project).project_name
+                project =  Project_Assets.objects.get(id=assets.project).project_name
             except:
                 project = '未知'                
             if hasattr(assets,'server_assets'):
@@ -40,13 +40,13 @@ class AssetsSource(object):
                     data["username"] = server_assets.username
                     data["sudo_passwd"] = server_assets.sudo_passwd
                     if server_assets.keyfile != 1:data["password"] =  server_assets.passwd                   
-                except Exception as ex:
+                except Exception, ex:
                     logger.warn(msg="server_id:{assets}, error:{ex}".format(assets=server_assets.id,ex=ex))
                 if server_assets.assets.host_vars:
                     try:                         
                         for k,v in eval(server_assets.assets.host_vars).items():
                             if k not in ["ip", "port", "username", "password","ip"]:data[k] = v 
-                    except Exception as ex:
+                    except Exception,ex:
                         logger.warn(msg="资产: {assets},转换host_vars失败:{ex}".format(assets=server_assets.assets.id,ex=ex))                                                
             elif network > 0:
                 try:    
@@ -58,13 +58,13 @@ class AssetsSource(object):
                     data["username"] = network_assets.username
                     data["sudo_passwd"] = network_assets.sudo_passwd
                     data["connection"] = 'local'
-                except Exception as ex:
+                except Exception, ex:
                     logger.warn(msg="network_id:{assets}, error:{ex}".format(assets=server_assets.id,ex=ex))  
                 if network_assets.assets.host_vars:
                     try:                         
                         for k,v in eval(network_assets.assets.host_vars).items():
                             if k not in ["ip", "port", "username", "password","ip"]:data[k] = v 
-                    except Exception as ex:
+                    except Exception,ex:
                         logger.warn(msg="资产: {assets},转换host_vars失败:{ex}".format(assets=network_assets.assets.id,ex=ex))              
             resource.append(data)
         return  sList, resource           
@@ -99,7 +99,7 @@ class AssetsSource(object):
                     data["username"] = assets.server_assets.username
                     data["sudo_passwd"] = assets.server_assets.sudo_passwd
                     if assets.server_assets.keyfile == 0:data["password"] =  assets.server_assets.passwd                         
-                except Exception as ex:
+                except Exception, ex:
                     logger.warn(msg="id:{assets}, error:{ex}".format(assets=assets.id,ex=ex))                    
             elif hasattr(assets,'network_assets'):
                 try:
@@ -110,13 +110,13 @@ class AssetsSource(object):
                     data["username"] = assets.network_assets.username
                     data["sudo_passwd"] = assets.network_assets.sudo_passwd
                     data["connection"] = 'local'
-                except Exception as ex:
+                except Exception, ex:
                     logger.warn(msg="id:{assets}, error:{ex}".format(assets=assets.id,ex=ex))   
             if assets.host_vars:
                 try:                         
                     for k,v in eval(assets.host_vars).items():
                         if k not in ["ip", "port", "username", "password","ip"]:data[k] = v
-                except Exception as ex:
+                except Exception,ex:
                     logger.warn(msg="资产: {assets},转换host_vars失败:{ex}".format(assets=assets.id,ex=ex)) 
             resource.append(data)
         return sList, resource
@@ -127,7 +127,7 @@ class AssetsSource(object):
         groups = ''
         try:
             inventory = Ansible_Inventory.objects.get(id=inventory)
-        except Exception as ex:
+        except Exception, ex: 
             logger.warn(msg="资产组查询失败：{id}".format(id=inventory,ex=ex))
         for ds in inventory.inventory_group.all():
             resource[ds.group_name] = {}
@@ -143,7 +143,7 @@ class AssetsSource(object):
                         data["username"] = assets.server_assets.username
                         data["sudo_passwd"] = assets.server_assets.sudo_passwd                        
                         if assets.server_assets.keyfile != 1:data["password"] =  assets.server_assets.passwd
-                    except Exception as ex:
+                    except Exception, ex:
                         logger.warn(msg="id:{assets}, error:{ex}".format(assets=assets.id,ex=ex))                     
                 elif hasattr(assets,'network_assets'):                 
                     try:
@@ -154,13 +154,13 @@ class AssetsSource(object):
                         data["username"] = assets.network_assets.username
                         data["sudo_passwd"] = assets.network_assets.sudo_passwd
                         data["connection"] = 'local'
-                    except Exception as ex:
+                    except Exception, ex:
                         logger.warn(msg="id:{assets}, error:{ex}".format(assets=assets.id,ex=ex))
                 if assets.host_vars:
                     try:                         
                         for k,v in eval(assets.host_vars).items():
                             if k not in ["ip", "port", "username", "password","ip"]:data[k] = v
-                    except Exception as ex:
+                    except Exception,ex:
                         logger.warn(msg="资产: {assets},转换host_vars失败:{ex}".format(assets=assets.id,ex=ex))                        
                 if serverIp not in sList:sList.append(serverIp)
                 hosts.append(data)
@@ -168,7 +168,7 @@ class AssetsSource(object):
             groups +=  ds.group_name + ','
             try:
                 if ds.ext_vars:resource[ds.group_name]['vars'] = eval(ds.ext_vars)  
-            except Exception as ex:
+            except Exception,ex: 
                 logger.warn(msg="资产组变量转换失败: {id} {ex}".format(id=inventory,ex=ex))
                 resource[ds.group_name]['vars'] = None
         return sList, resource,groups       

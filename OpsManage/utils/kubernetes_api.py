@@ -7,6 +7,7 @@ from kubernetes import K8sService
 from kubernetes import K8sContainer
 from kubernetes import K8sVolume
 from kubernetes import K8sVolumeMount
+from kubernetes import K8sSecret
 
 
 class K8sTools(object):
@@ -46,6 +47,18 @@ class K8sTools(object):
                 continue
         return res
 
+    def create_secret(self, name):
+        data = {"auths":{"registry-vpc.cn-shanghai.aliyuncs.com":{"username":"jinhuhang","password":"qJrN%h1sn58p","email":"jinhuhang@aliyun.com","auth":"amluaHVoYW5nOnFKck4laDFzbjU4cA=="}}}
+        o=K8sSecret(config=self.k8s_config, name=name)
+        o.create_image_pull_secret(name=name,
+                                   config=self.k8s_config,
+                                   data=data)
+        return o.name
+
+    def get_secret(self, name):
+        secret = K8sSecret(config=self.k8s_config,name=name)
+        return secret.get_model()
+
     def has_service(self, name):
         o = K8sService(config=self.k8s_config, name=name)
         res = False
@@ -63,29 +76,24 @@ class K8sTools(object):
 
     def create_deployment(self, name, image, env, rs=1, type='tomcat', port=8080,env_dict=False,mount_path=False):
         is_run = False
-        if self.has_deployment(name):
-            # image=self.get_deployment(name)['spec']['template']['spec']['containers'][0]['image']
-            is_run=True
+        if self.has_deployment(name): is_run=True
         container = K8sContainer(name=name, image=image)
         container.add_port(container_port=port)
         try:
-            if env_dict:
-                for k, v in env_dict.items():
-                    container.add_env(name=str(k), value=str(v))
+            if isinstance(env_dict, dict) and env_dict:
+                for k, v in env_dict.items(): container.add_env(name=str(k), value=str(v))
             container.add_env(name='ENVNAME', value=str(env))
         except Exception as ex:
-            return "Error: 添加容器环境变量失败" + ex
+            return "Error: 添加容器环境变量失败" + str(ex)
         try:
             mount_path = mount_path if mount_path else '/usr/local/tomcat/logs'
-            if type == "tomcat":
-                container.add_env(name='aliyun_logs_'+name, value='stdout')
-            else:
-                container.add_env(name='aliyun_logs_'+name, value=mount_path + '/*.log')
+            if type == "tomcat":  container.add_env(name='aliyun_logs_'+name, value='stdout')
+            else: container.add_env(name='aliyun_logs_'+name, value=mount_path + '/*.log')
             mount = K8sVolumeMount(name=name + '-logs', mount_path=mount_path)
             container.add_volume_mount(mount)
         except Exception as ex:
-            return "Error: 容器数据卷添加失败"+ex
-        container.resources = {'requests': {"cpu": "1000m", "memory": "2000M"}}
+            return "Error: 容器数据卷添加失败" + str(ex)
+        container.resources = {'requests': {"cpu": "200m", "memory": "1000M"}}
         deployment = K8sDeployment(
             config=self.k8s_config,
             name=name,

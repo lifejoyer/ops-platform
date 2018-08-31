@@ -15,7 +15,7 @@ class AnsibleSaveResult(object):
                                               logId= logId,
                                               content = content
                                               )
-            except Exception as e:
+            except Exception,e:
                 return False
             
     class PlayBook(object):
@@ -28,7 +28,7 @@ class AnsibleSaveResult(object):
                                               logId= logId,
                                               content = content
                                               )
-            except Exception as e:
+            except Exception,e:
                 return False    
                 
 class AnsibleRecord(object):
@@ -44,7 +44,7 @@ class AnsibleRecord(object):
                                               ans_args = ans_args,
                                               ans_model = ans_model,
                                               )
-            except Exception as e:
+            except Exception,e:
                 return False
             
     class PlayBook(object):
@@ -60,6 +60,6 @@ class AnsibleRecord(object):
                                               ans_id = ans_id,
                                               ans_content = ans_content,
                                               )
-            except Exception as ex:
-                print(ex)
+            except Exception, ex:
+                print ex
                 return False  

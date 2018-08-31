@@ -22,7 +22,7 @@
                         <div class="panel-body">
                             <div class="row">
                                 <div class="col-lg-4">
-                                <legend><i class="fa  fa-paper-plane"></i>部署服务器</legend>
+                                <legend><i class="fa  fa-paper-plane"></i>部署参数</legend>
                                     <form role="form" id="deployRun" class="main form-horizontal" >{% csrf_token %}
 										<fieldset>															
 											<div class="form-group">
@@ -41,14 +41,47 @@
 												 </div>
 											</div>
 											<div class="form-group">
-												 <label class="col-sm-4 control-label">版本分支</label>
+												 <label class="col-sm-4 control-label">发布环境</label>
+												 <div class="col-sm-6">
+                                                     {% if project.project_env == 'test' %}
+                                                         <input type="text" class="form-control" value="测试环境" style="color: green" disabled />
+                                                     {% elif project.project_env == 'uat' %}
+                                                         <input type="text" class="form-control" value="灰度环境" style="color: orange" disabled />
+                                                     {% elif project.project_env == 'prod' %}
+                                                         <input type="text" class="form-control"value="生产环境"  style="color: red" disabled />
+                                                     {% endif %}
+{#                                                    <input type="text" class="form-control" name="project_env" id="project_env" value="{{project.project_env}}"  class="input-xlarge" disabled/>#}
+												 </div>
+											</div>
+											<div class="form-group">
+												 <label class="col-sm-4 control-label">代码分支</label>
 												 <div class="col-sm-6">
                                                     <input type="text" class="form-control" name="project_branch" value="{{project.project_branch}}"  class="input-xlarge" disabled/>
 												 </div>
 											</div>
                                             <div class="form-group">
-                                                <label class="col-sm-4 control-label">jenkins-任务</label>
+                                                <label class="col-sm-4 control-label">业务版本</label>
                                                 <div class="col-sm-6">
+                                                    {% if project.project_env == 'uat' or project.project_env == 'prod' %}
+                                                    <select class="form-control" name="project_version"  id="version_choice">
+												   			<option name="project_version" value="">选择版本</option>
+															{% for ds in vList %}
+                                                                <option value="{{ds}}" name="project_version">{{ds}}</option>
+															{% endfor %}
+													</select>
+                                                    {% else %}
+                                                        <input type="text" class="form-control" name="" value="随机生成"  class="input-xlarge" disabled/>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-sm-6">
+                                                    {% if project.project_env == 'uat' or project.project_env == 'prod' %}
+                                                        {% for ds in vCommit %}
+                                                        <input type="hidden" class="form-control" name="project_commit_id" value="{{ ds.comid }}"  class="input-xlarge" />
+                                                        {% endfor %}
+                                                    {% endif %}
+
                                                 </div>
                                             </div>
 											</fieldset>
@@ -126,7 +159,7 @@
 		});
 
 	function oBtBranchChoice() {
-		   var obj = document.getElementById("branch_choice"); 
+		   var obj = document.getElementById("branch_choice");
 		   var index = obj.selectedIndex;
 		   var value = obj.options[index].value; 
 		   $("#branch_choice option:selected").text('* '+value);
@@ -166,6 +199,7 @@
 	function runDeploy(obj) {
 		var btnObj = $(obj);
 		btnObj.attr('disabled',true);
+		var env='{{project.project_env}}';
 		$('#smartwizard').smartWizard("reset");
 		var form = document.getElementById('deployRun');
 		var post_data = {};
@@ -181,14 +215,17 @@
 			else if (name.length > 0 && value.length > 0){
 				post_data[name] = value;
 			};
-			
 		};
+		if(env=='prod'||env=='uat'){
+		    var btnVersion=$('#version_choice');
+		    btnVersion.attr('disabled',true);
+        }
  		$("#result").html("服务器正在处理，请稍等。。。"); 
 		/* 轮训获取结果 开始  */
 	   var interval = setInterval(function(){  
 	        $.ajax({  
 	            url : '/deploy_result/{{project.id}}/',  
-	            type : 'post', 
+	            type : 'post',
 	            data:post_data, 
 	            success : function(result){
 	            	if (result["msg"] !== null ){
@@ -220,7 +257,7 @@
 		$.ajax({
 			url:'/deploy_run/'+"{{project.id}}/", //请求地址
 			type:"POST",  //提交类似
-			data:$("#deployRun").serialize(),  //提交参数
+			data:post_data,  //提交参数
 			success:function(response){
 				btnObj.removeAttr('disabled');
 				if (response["code"] == "500"){

@@ -21,8 +21,8 @@ class ServiceSerializer(serializers.ModelSerializer):
     project_id = serializers.IntegerField(source='project.id', read_only=True)
     class Meta:
         model = Service_Assets
-        fields = ('id','service_name','service_type', 'project_repo_passwd',
-                  'project_address', 'project_repo_user',
+        fields = ('id','service_name','service_type',
+                  'service_pom_path', 'service_root_path',
                   'project_name', 'project_id')
            
 

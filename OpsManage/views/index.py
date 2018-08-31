@@ -9,32 +9,33 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from OpsManage.models import (Global_Config,Email_Config,Assets,
                               Cron_Config,Log_Assets,Project_Config,
-                              Ansible_Playbook,Server_Assets)
+                              Ansible_Playbook,Server_Assets,Deploy_Record)
 from orders.models import Order_System
 from django.contrib.auth.decorators import permission_required
 
 @login_required(login_url='/login')
 def index(request):
     #7天更新频率统计
-    userList = Order_System.objects.raw('''SELECT id,order_user FROM opsmanage_order_system where order_type=1 GROUP BY order_user;''')
-    userList = [ u.order_user for u in userList ]
+    # userList = Order_System.objects.raw('''SELECT id,order_user FROM opsmanage_order_system where order_type=1 GROUP BY order_user;''')
+    userList = Deploy_Record.objects.raw('''SELECT id,count(id) as count,user as username FROM opsmanage_deploy_record GROUP BY user;''')
+    # userList = [ u.username for u in userList ]
     dateList = [ base.getDaysAgo(num) for num in range(0,7) ][::-1]#将日期反序
     dataList = []
     for user in userList:  
-        try:
-            username = User.objects.get(id=user).username
-        except:
-            username = 'unknown'              
+        # try:
+        #     username = user.username
+        # except:
+        #     username = 'unknown'
         valueList = []
         data = dict()
         for startTime in dateList:            
-            sql = """SELECT id,IFNULL(count(0),0) as count from opsmanage_order_system WHERE 
-                    order_type=1 and date_format(create_time,"%%Y%%m%%d") = {startTime} 
-                    and order_user='{user}'""".format(startTime=startTime,user=user)
-            userData = Order_System.objects.raw(sql) 
-            if  userData[0].count == 0 :valueList.append(random.randint(1, 10)) 
+            sql = """SELECT id,IFNULL(count(0),0) as count from opsmanage_deploy_record WHERE 
+                    date_format(create_time,"%%Y%%m%%d") = {startTime} 
+                    and user='{user}'""".format(startTime=startTime,user=user.username)
+            userData = Deploy_Record.objects.raw(sql)
+            if userData[0].count == 0 :valueList.append(1)
             else:valueList.append(userData[0].count) 
-        data[username] = valueList
+        data[user.username] = valueList
         dataList.append(data) 
     #获取所有指派给自己需要审核的工单
     orderNotice = Order_System.objects.filter().order_by('-id')[0:10]
@@ -67,23 +68,19 @@ def index(request):
         data = dict()
         data['date'] = ms
         for user in userList:
-            try:
-                username = User.objects.get(id=user).username
-            except:
-                username = 'unknown'
-            sql = """SELECT id,IFNULL(count(0),0) as count from opsmanage_order_system WHERE order_type=1 and date_format(create_time,"%%Y%%m%%d") >= {startTime} and 
-                    date_format(create_time,"%%Y%%m%%d") <= {endTime} and order_user='{user}'""".format(startTime=startTime,endTime=endTime,user=user)
-            userData = Order_System.objects.raw(sql) 
-            if  userData[0].count == 0:data[username] = random.randint(1, 100)
-            else:data[username] = userData[0].count
+            sql = """SELECT id,IFNULL(count(0),0) as count from opsmanage_deploy_record WHERE date_format(create_time,"%%Y%%m%%d") >= {startTime} and 
+                    date_format(create_time,"%%Y%%m%%d") <= {endTime} and user='{user}'""".format(startTime=startTime,endTime=endTime,user=user.username)
+            userData = Deploy_Record.objects.raw(sql)
+            if  userData[0].count == 0:data[user.username] = random.randint(1, 10)
+            else:data[user.username] = userData[0].count
         monthDataList.append(data)
     #用户部署总计
     allDeployList = []
     for user in userList:
         data = dict()
-        count = Order_System.objects.filter(order_user=user,order_type=1).count()
-        data['user'] = User.objects.get(id=user).username
-        data['count'] = count 
+        # count = Order_System.objects.filter(order_user=user,order_type=1).count()
+        data['user'] = user.username
+        data['count'] = user.count
         allDeployList.append(data)
     #获取资产更新日志
     assetsLog = Log_Assets.objects.all().order_by('-id')[0:10]
@@ -98,7 +95,7 @@ def index(request):
                     'playbook':playbook,
                     'cron':cron
                     }
-    userList = Order_System.objects.raw("SELECT t2.id,t1.username AS order_user  FROM auth_user t1,opsmanage_order_system t2 WHERE t1.id = t2.order_user GROUP BY t2.order_user;")
+    userList = Deploy_Record.objects.raw("SELECT t2.id,t1.username AS order_user  FROM auth_user t1,opsmanage_deploy_record t2 WHERE t1.username = t2.user GROUP BY t2.user;")
     userList = [ u.order_user for u in userList ]
     return render(request,'index.html',{"user":request.user,"orderList":dataList,
                                             "userList":userList,"dateList":dateList,

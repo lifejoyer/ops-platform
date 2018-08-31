@@ -78,7 +78,7 @@ class MyInventory(Inventory):
             my_group.add_host(my_host)
         try:  
             self.add_group(my_group)
-        except Exception as ex:
+        except Exception,ex:
             logger.error(msg="ansible添加资产组失败: {ex}".format(ex=ex))  
   
     def dynamic_inventory(self):  
@@ -442,7 +442,7 @@ class ANSRunner(object):
         )
         try: 
             play = Play().load(play_source, variable_manager=self.variable_manager, loader=self.loader)  
-        except AnsibleParserError as err:
+        except AnsibleParserError, err:
             logger.error(msg="run model failed: {err}".format(err=str(err)))
             if self.redisKey:DsRedis.OpsAnsibleModel.lpush(self.redisKey,data="run model failed: {err}".format(err=str(err)))
             if self.logId:AnsibleSaveResult.Model.insert(self.logId, "run model failed: {err}".format(err=str(err)))   

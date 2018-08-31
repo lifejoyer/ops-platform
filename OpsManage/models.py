@@ -191,10 +191,9 @@ class Service_Assets(models.Model):
     project = models.ForeignKey('Project_Assets',related_name='service_assets', on_delete=models.CASCADE)
     service_name = models.CharField(max_length=100) 
     service_type = models.CharField(max_length=10, null=True, blank=True)
-    project_address = models.CharField(max_length=100, null=True, blank=True)
-    project_repo_user = models.CharField(max_length=20, null=True, blank=True)
-    project_repo_passwd = models.CharField(max_length=64,null=True, blank=True)
-
+    service_root_path = models.CharField(max_length=200, null=True, blank=True)
+    service_pom_path = models.CharField(max_length=100, null=True, blank=True)
+    # project_repo_passwd = models.CharField(max_length=64,null=True, blank=True)
     class Meta:
         db_table = 'opsmanage_service_assets'
         permissions = (
@@ -333,6 +332,7 @@ class Project_Config(models.Model):
     project_name = models.CharField(max_length=100,verbose_name='项目名称', blank=True, null=True, default=None)
     project_service_port = models.CharField(max_length=10, verbose_name='对外服务端口', blank=True, null=True, default=None)
     project_debug_port = models.CharField(max_length=10, verbose_name='debug端口', blank=True, null=True, default=None)
+    project_replication = models.SmallIntegerField(verbose_name='项目副本数',blank=True,null=True,default=1)
     project_env_var = models.CharField(max_length=1000,verbose_name='容器环境变量', blank=True, null=True, default=None)
     project_mount_path = models.CharField(max_length=500, verbose_name='挂载路径', blank=True, null=True, default=None)
     '''自定义权限'''

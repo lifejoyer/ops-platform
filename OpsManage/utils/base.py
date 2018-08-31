@@ -4,12 +4,14 @@
 import magic
 from random import choice
 import string,hashlib,calendar
-import commands,os,time,smtplib
+import commands
+import os,time,smtplib
 from datetime import datetime,timedelta,date
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication 
 from email.mime.multipart import MIMEMultipart
 from OpsManage.utils.logger import logger
+import re
 
 def file_iterator(file_name, chunk_size=512):
     f = open(file_name, "rb")
@@ -94,8 +96,8 @@ def lns(spath,dpath):
 
 def getDaysAgo(num):
     threeDayAgo = (datetime.now() - timedelta(days = num))
-    timeStamp = int(time.mktime(threeDayAgo .timetuple()))
-    otherStyleTime = threeDayAgo .strftime("%Y%m%d")
+    timeStamp = int(time.mktime(threeDayAgo.timetuple()))
+    otherStyleTime = threeDayAgo.strftime("%Y%m%d")
     return otherStyleTime
 
 def getSQLAdvisor(host,port,user,passwd,dbname,sql):
@@ -131,6 +133,7 @@ def getMonthFirstDayAndLastDay(year=None, month=None):
     lastDay = date(year=year, month=month, day=monthRange)
     return firstDay, lastDay
 
+
 def getFileType(filePath):
     try:
         files = magic.Magic(uncompress=True,mime=True)
@@ -139,4 +142,44 @@ def getFileType(filePath):
         file_type = '未知'
         logger.error("获取文件类型失败: {ex}".format(ex=ex))
     return file_type
-    
+
+
+def version_compare(v1, v2):
+    v1_arr = str(v1).split('.')
+    v2_arr = str(v2).split('.')
+    if len(v1_arr) > len(v2_arr):
+        v_len = len(v1_arr)
+    else:
+        v_len = len(v2_arr)
+    try:
+        for i in range(0, v_len):
+            if int(v1_arr[i]) > int(v2_arr[i]):
+                return v1
+            elif int(v1_arr[i]) < int(v2_arr[i]):
+                return v2
+            else:
+                continue
+    except IndexError as ex:
+        if len(v1_arr) > len(v2_arr):
+            return v1
+        else:
+            return v2
+
+
+def is_number(num):
+  #pattern = re.compile(r'^[-+]?[-0-9]\d*\.\d*|[-+]?\.?[0-9]\d*$')
+  pattern = re.compile(r'\d+(\.\d+)*')
+  result = pattern.fullmatch(num)
+  if result:
+    return True
+  else:
+    return False
+
+def is_version(num):
+    try:
+        nums=str(num).split('.')
+        for n in nums: int(n)
+    except ValueError as e:
+        return False
+    else:
+        return True

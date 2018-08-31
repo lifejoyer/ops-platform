@@ -41,4 +41,3 @@ def recordProjectDeploy(user,project_name,service_name,image_name,run_env,is_onl
     except Exception as e:
         print(e)
         return False
-

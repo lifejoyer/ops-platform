@@ -15,6 +15,7 @@ Including another URLconf
 """
 
 from django.conf.urls import url,include
+from django.views.generic.base import RedirectView
 from django.contrib import admin
 from OpsManage.views import (index,assets,cron,deploy,
                              ansible,users,wssh,task,
@@ -23,6 +24,7 @@ from OpsManage.views.elfinder import finder
 from rest_framework.urlpatterns import format_suffix_patterns
 urlpatterns = [
     url(r'^$',index.index),
+    url(r'^favicon.ico$',RedirectView.as_view(url=r'static/favicon.ico')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^admin/', admin.site.urls),
     url(r'^login/',index.login),  
@@ -49,6 +51,7 @@ urlpatterns = [
     url(r'^cron_config',cron.cron_config),
     url(r'^cron_log/(?P<page>[0-9]+)/$',cron.cron_log),
     url(r'^cron_mod/(?P<cid>[0-9]+)/$',cron.cron_mod),
+    url(r'^cron_init/(?P<cid>[0-9]+)/$',cron.cron_init),
     url(r'^deploy_add',deploy.deploy_add),
     url(r'^deploy_list',deploy.deploy_list),
     url(r'^deploy_log/(?P<page>[0-9]+)/$',deploy.deploy_log),

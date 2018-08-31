@@ -4,7 +4,7 @@ import json,os
 from django.shortcuts import render
 from django.http import HttpResponseRedirect,JsonResponse
 from django.contrib.auth.decorators import login_required, permission_required
-from OpsManage.models import (Project_Assets,Project_Config,Project_Number,
+from OpsManage.models import (Project_Assets,Project_Config,Project_Number,Deploy_Record,
                               Service_Assets,DataBase_Server_Config,SQL_Audit_Control,
     Server_Assets)
 from .models import Order_System,Project_Order,SQL_Audit_Order
@@ -24,7 +24,7 @@ from filemanage.models import FileUpload_Audit_Order,UploadFiles,FileDownload_Au
 @login_required()
 @permission_required('orders.can_add_project_order',login_url='/noperm/')
 def deploy_ask(request):
-    deployList = Project_Config.objects.filter(project_env='uat')
+    deployList = Project_Config.objects.filter(project_env='prod')
     for ds in deployList:
         ds.number = Project_Number.objects.filter(project=ds)
     return render(request,'orders/deploy_list.html',{"user":request.user,"deployList":deployList}) 
@@ -34,25 +34,32 @@ def deploy_ask(request):
 def deploy_apply(request,pid):
     try:
         project = Project_Config.objects.get(id=pid)
-        if project.project_repertory == 'git':version = GitTools()
-        elif project.project_repertory == 'svn':version = SvnTools()
+        version = GitTools()
     except:
         return render(request,'orders/deploy_apply.html',{"user":request.user,
                                                          "errorInfo":"项目不存在，可能已经被删除."}, 
                                   )     
     if request.method == "GET":
-        vList = None
-        version.pull(path=project.project_repo_dir)
-        if project.project_model == 'branch':
-            #获取最新版本
-            bList = version.branch(path=project.project_repo_dir) 
-            vList = version.log(path=project.project_repo_dir, number=50)
-        elif project.project_model == 'tag':
-            bList = version.tag(path=project.project_repo_dir) 
+        vList = []
+
+        uatVersion = Deploy_Record.objects.values('image_version').filter(run_env='uat',
+                                                                      service_name=project.service.service_name,
+                                                                      project_name=project.project.project_name).order_by('-create_time')[0:5]
+        prodVersion = Deploy_Record.objects.values('image_version').filter(run_env='prod',
+                                                                      service_name=project.service.service_name,
+                                                                      project_name=project.project.project_name).order_by('-create_time')[0:1]
+
+        if len(prodVersion)>=1 and len(uatVersion)>=1:
+            for v in uatVersion:
+                version=base.version_compare(prodVersion[0]['image_version'], v['image_version'])
+                if version: vList.append(version)
+        elif len(uatVersion)>=1:
+            for v in uatVersion: vList.append(v['image_version'])
+        if len(vList) > 1: vList = list(set(vList))
         audit_group = Group.objects.get(id=project.project_audit_group)
         userList = [ u for u in audit_group.user_set.values()]
         return render(request,'orders/deploy_apply.html',{"user":request.user,"project":project,
-                                                         "userList":userList,"bList":bList,"vList":vList}, 
+                                                         "userList":userList,"vList":vList},
                                   )  
     elif request.method == "POST":       
         try:      
@@ -64,7 +71,7 @@ def deploy_apply(request,pid):
                                                 order_level = request.POST.get('order_level'),
                                                 order_type =  1,
                                             )
-        except Exception,ex:
+        except Exception as ex:
             logger.error(msg="项目部署申请失败: {ex}".format(ex=str(ex)))
             return render(request,'orders/deploy_apply.html',{"user":request.user,"errorInfo":"项目部署申请失败：%s" % str(ex)},)    
         try:
@@ -72,15 +79,16 @@ def deploy_apply(request,pid):
                                          order = order,
                                          order_project = project,
                                          order_content = request.POST.get('order_content'),
+                                         order_version = request.POST.get('order_version'),
                                          order_branch = request.POST.get('order_branch',None),
                                          order_comid = request.POST.get('order_comid',None),
                                          order_tag  = request.POST.get('order_tag',None)                                         
                                          )
-        except Exception,ex:      
+        except Exception as ex:
             logger.error(msg="项目部署申请失败: {ex}".format(ex=str(ex)))
             return render(request,'orders/deploy_apply.html',{"user":request.user,"errorInfo":"项目部署申请失败：%s" % str(ex)},)                 
         sendOrderNotice.delay(order_id=order.id,mask='【申请中】')
-        return HttpResponseRedirect('/order/deploy/apply/{id}/'.format(id=pid))  
+        return HttpResponseRedirect('/deploy_list')
 
 
 @login_required()
@@ -102,7 +110,7 @@ def db_sqlorder_audit(request):
             dataBaseList = DataBase_Server_Config.objects.all()
             serviceList = Service_Assets.objects.all()
             projectList = Project_Assets.objects.all()
-        except Exception, ex:
+        except Exception as ex:
             logger.warn(msg="获取SQL审核配置信息失败: {ex}".format(ex=str(ex)))
         return render(request,'orders/db_sqlorder_audit.html',{"user":request.user,"dataBaseList":dataBaseList,"userList":userList,
                                                                  "serviceList":serviceList,"projectList":projectList})
@@ -113,7 +121,7 @@ def db_sqlorder_audit(request):
                 return  JsonResponse({'msg':"审核失败，工单（{desc}）已经存在".format(desc=request.POST.get('order_desc')),"code":500,'data':[]})
             try:
                 db = DataBase_Server_Config.objects.get(id=int(dbId))
-            except Exception,ex:
+            except Exception as ex:
                 logger.error(msg="获取数据库配置信息失败: {ex}".format(ex=str(ex)))
                 return JsonResponse({'msg':str(ex),"code":500,'data':[]})
             if request.POST.get('order_type') == 'online':
@@ -149,7 +157,7 @@ def db_sqlorder_audit(request):
                                                            order_type = 0
                                                            )  
                                 sendOrderNotice.delay(order.id,mask)                          
-                            except Exception, ex:
+                            except Exception as ex:
                                 logger.error(msg="SQL审核失败: {ex}".format(ex=str(ex)))
                                 return JsonResponse({'msg':str(ex),"code":500,'data':[]})
                             try:
@@ -159,13 +167,13 @@ def db_sqlorder_audit(request):
                                                                order_type = 'online',                                                            
                                                                order_sql = request.POST.get('order_sql')
                                                                )
-                            except Exception, ex:
+                            except Exception as ex:
                                 logger.error(msg="SQL审核失败: {ex}".format(ex=str(ex)))
                                 return JsonResponse({'msg':str(ex),"code":500,'data':[]})                               
                             return JsonResponse({'msg':"审核成功，SQL已经提交","code":200,'data':sList})
                     else:
                         return JsonResponse({'msg':result.get('errinfo'),"code":500,'data':[]}) 
-                except Exception, ex:
+                except Exception as ex:
                     return JsonResponse({'msg':str(ex),"code":200,'data':[]})     
             elif request.POST.get('order_type') == 'file':
                 try:
@@ -178,7 +186,7 @@ def db_sqlorder_audit(request):
                                                order_status = 4,
                                                order_type = 0
                                                )                          
-                except Exception, ex:
+                except Exception as ex:
                     logger.error(msg="SQL文件审核失败: {ex}".format(ex=str(ex)))
                     return JsonResponse({'msg':str(ex),"code":500,'data':[]})                 
                 try:                                  
@@ -190,7 +198,7 @@ def db_sqlorder_audit(request):
                                                     order_file = request.FILES.get('order_file'),
                                                 )  
                     sendOrderNotice.delay(order.id,mask='【申请中】')                          
-                except Exception, ex:
+                except Exception as ex:
                     logger.error(msg="SQL文件审核失败: {ex}".format(ex=str(ex)))
                     return JsonResponse({'msg':str(ex),"code":500,'data':[]})
                 return JsonResponse({'msg':"SQL工单已经提交","code":200,'data':[]})  
@@ -226,7 +234,7 @@ def order_list(request,page):
                     ds.order_url = '/file/download/run/{id}/'.format(id=ds.id)
                     ds.order_content = ds.filedownload_audit_order.order_content                    
                 else:ds.order_content = '未知'
-            except Exception, ex:
+            except Exception as ex:
                 logger.warn(msg="获取审核SQL[{id}]错误: {ex}".format(id=ds.id,ex=str(ex)))
         orderRbt = Order()       
         #工单类型总计
@@ -373,7 +381,7 @@ def file_upload_audit(request):
                                                 order_level=0,
                                                 order_user=request.user.id,
                                                 )
-        except Exception, ex:
+        except Exception as ex:
             logger.error(msg="文件上传失败: {ex}".format(ex=ex))
             return JsonResponse({'msg':"文件上传失败: {ex}".format(ex=ex),"code":500}) 
         if  request.POST.get('server_model') == 'service':
@@ -393,7 +401,7 @@ def file_upload_audit(request):
                                                            chown_rwx=request.POST.get('chown_rwx'),
                                                            order_content=request.POST.get('order_content'),
                                                            )
-        except Exception, ex:
+        except Exception as ex:
             order.delete()
             logger.error(msg="文件上传失败: {ex}".format(ex=ex))
             return JsonResponse({'msg':"文件上传失败: {ex}".format(ex=ex),"code":500})
@@ -404,7 +412,7 @@ def file_upload_audit(request):
                 filePath = os.getcwd() + '/upload/' + str(upFile.file_path)
                 upFile.file_type = base.getFileType(filePath)
                 upFile.save()
-            except Exception,ex:
+            except Exception as ex:
                 order.delete()
                 upload.delete()
                 logger.error(msg="文件上传失败: {ex}".format(ex=ex))
@@ -450,7 +458,7 @@ def file_download_audit(request):
                                                 order_level=0,
                                                 order_user=request.user.id,
                                                 )
-        except Exception, ex:
+        except Exception as ex:
             logger.error(msg="文件下载申请失败: {ex}".format(ex=ex))
             return JsonResponse({'msg':"文件下载申请失败: {ex}".format(ex=ex),"code":500}) 
         if  request.POST.get('server_model') == 'service':
@@ -468,7 +476,7 @@ def file_download_audit(request):
                                                     dest_server=json.dumps(serverList),
                                                     order_content=request.POST.get('order_content'),
                                                     )
-        except Exception, ex:
+        except Exception as ex:
             order.delete()
             logger.error(msg="文件下载申请失败: {ex}".format(ex=ex))
             return JsonResponse({'msg':"文件下载申请失败: {ex}".format(ex=ex),"code":500})                         
