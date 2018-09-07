@@ -152,52 +152,55 @@
                                 			</td>
                                 			<td>{{ds.project_branch }} </td>
                                 			<td>
-                                				{% if ds.project_status == 0 %}
+                                            {% if ds.project_env == 'prod' %}
+                                                <button  type="button" class="btn active btn-info">请走工单</button>
+                                            {% else %}
+                                                {% if ds.project_status == 0 %}
                                 					<button  type="button" class="btn btn-outline btn-warning" onclick="initProject(this,'{{ds.service.service_name}}',{{ds.id}})">未初始化</button>
                                 				{% else %}
                                 					<button  type="button" class="btn btn-outline btn-success">已初始化</button>
                                 				{% endif %}
+                                            {% endif %}
                                 			</td>
                                 			<td class="text-center">
                                                 <a href="/deploy_mod/{{ds.id}}"><button  type="button" title="修改资料" class="btn btn-default"><abbr title="修改资料"><i class="glyphicon glyphicon-edit"></i></abbr></button></a>
-												{% if ds.project_status == 1 %}
-													{% if ds.project_env == 'test' or ds.project_env == 'uat' %}
+                                                {% if ds.project_env == 'prod' %}
+                                                    <a href="/order/deploy/apply/{{ds.id}}"><button  type="button" class="btn btn-default"><abbr title="部署申请"><i class="fa fa-play-circle-o"></i></abbr></button></a>
+                                                {% else %}
+												    {% if ds.project_status == 1 %}
                                                         <a href="/deploy_run/{{ds.id}}"  title="部署"><button  type="button" class="btn btn-default"><abbr title="部署"><i class="fa fa-play-circle-o"></i></abbr></button></a>
-													{% else %}
-                                                        <a href="/order/deploy/apply/{{ds.id}}"><button  type="button" class="btn btn-default"><abbr title="部署申请"><i class="fa fa-play-circle-o"></i></abbr></button></a>
-													{% endif %} 
-                                                    <a href="/deploy_manage/{{ds.id}}" title="版本控制"><button  type="button" class="btn btn-default"><abbr title="版本控制"><i class="fa fa-gear"></i></abbr></button></a>
-												{% else %}
-													<button  type="button" class="btn btn-default" title="提示"  
-														data-container="body" data-toggle="popover" data-placement="top" 
-														data-content="请先初始化仓库" data-html="true"><i class="fa fa-play-circle-o"></i></button>
-													<button  type="button" class="btn btn-default" title="提示"  
-														data-container="body" data-toggle="popover" data-placement="top" 
-														data-content="请先初始化仓库" data-html="true"><i class="fa fa-gear"></i></button>      
-												{% endif %}      
-												
-												{% if ds.project_repertory == 'git' %}
-												<div class="btn-group-vertical">										
-													<div class="btn-group-vertical">
-														<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                                                            <abbr title="分支控制"><i class="fa fa-github"></i></abbr>
-															<span class="caret"></span>
-														</button>
-														<ul class="dropdown-menu">
-															<li><a href="javascript:" onclick="projcectVersion(this,'branch',{{ds.id}},'create')">创建Branch</a></li>
+                                                        <a href="/deploy_manage/{{ds.id}}" title="版本控制"><button  type="button" class="btn btn-default"><abbr title="版本控制"><i class="fa fa-gear"></i></abbr></button></a>
+												    {% else %}
+													    <button  type="button" class="btn btn-default" title="提示"
+														    data-container="body" data-toggle="popover" data-placement="top"
+														    data-content="请先初始化仓库" data-html="true"><i class="fa fa-play-circle-o"></i></button>
+													    <button  type="button" class="btn btn-default" title="提示"
+														    data-container="body" data-toggle="popover" data-placement="top"
+														    data-content="请先初始化仓库" data-html="true"><i class="fa fa-gear"></i></button>
+												    {% endif %}
+												    {% if ds.project_repertory == 'git' %}
+												    <div class="btn-group-vertical">
+													    <div class="btn-group-vertical">
+														    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                                                <abbr title="分支控制"><i class="fa fa-github"></i></abbr>
+															    <span class="caret"></span>
+														    </button>
+														    <ul class="dropdown-menu">
+															    <li><a href="javascript:" onclick="projcectVersion(this,'branch',{{ds.id}},'create')">创建Branch</a></li>
 <!-- 															<li><a href="javascript:" onclick="projcectVersion(this,'tag',{{ds.id}},'create')">创建Tag</a></li> -->
-															<li role="presentation" class="divider"></li>
-															<li><a href="javascript:" onclick="projcectVersion(this,'branch',{{ds.id}},'delete')">删除Branch</a></li>
-															<li><a href="javascript:" onclick="projcectVersion(this,'tag',{{ds.id}},'delete')">删除Tag</a></li>															
-														</ul>
-													</div>
-												</div>  
-												{% else %}
-													<button  type="button" class="btn btn-default" title="提示"  
-														data-container="body" data-toggle="popover" data-placement="top" 
-														data-content="敬请期待Svn仓库版本管理功能" data-html="true">&nbsp;<i class="fa fa-github-alt">&nbsp;&nbsp;</i>
-													</button>														
-												{% endif %}											           				
+															    <li role="presentation" class="divider"></li>
+															    <li><a href="javascript:" onclick="projcectVersion(this,'branch',{{ds.id}},'delete')">删除Branch</a></li>
+															    <li><a href="javascript:" onclick="projcectVersion(this,'tag',{{ds.id}},'delete')">删除Tag</a></li>
+														    </ul>
+													    </div>
+												    </div>
+												    {% else %}
+													    <button  type="button" class="btn btn-default" title="提示"
+														    data-container="body" data-toggle="popover" data-placement="top"
+														    data-content="敬请期待Svn仓库版本管理功能" data-html="true">&nbsp;<i class="fa fa-github-alt">&nbsp;&nbsp;</i>
+													    </button>
+												    {% endif %}
+                                                {% endif %}
                                                 <button  type="button" class="btn btn-default" onclick="deleteProject(this,{{ds.id}})"><abbr title="删除"><i class="glyphicon glyphicon-trash"></i></abbr></button>
                                 			</td>
                                 		</tr>
@@ -207,7 +210,7 @@
                             <!-- /.table-responsive -->
                             <div class="well">
                                 <h4>项目管理说明</h4>
-                                <p>预生产环境与生产环境的代码部署需要审批，测试环境则不需要。</p>
+                                <p>生产环境的代码部署需要审批，测试和灰度环境则不需要。</p>
                                 <a class="btn btn-default btn-lg btn-block" target="_blank" href="/deploy_add"><i class="fa fa-plus-circle "></i>新建代码部署</a>
                             </div>
                         </div>

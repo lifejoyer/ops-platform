@@ -60,7 +60,7 @@ def task_model(request):
                                                 expires = request.POST.get('expires',None)
                                                       )
                     return  JsonResponse({"code":200,"data":None,"msg":"添加成功"})
-                except Exception,e:
+                except Exception as e:
                     return  JsonResponse({"code":500,"data":str(e),"msg":"添加失败"})    
             elif op == 'delTask':
                 try:
@@ -81,7 +81,7 @@ def task_model(request):
                     task.enabled = int(request.POST.get('enabled'))
                     task.save()
                     return  JsonResponse({"code":200,"data":None,"msg":"修改成功"})
-                except Exception,e:
+                except Exception as e:
                     return  JsonResponse({"code":500,"data":str(e),"msg":"修改失败"})                             
         else:return  JsonResponse({"code":500,"data":None,"msg":"不支持的操作或者您没有权限操作操作此项。"})            
     else:return  JsonResponse({"code":500,"data":None,"msg":"不支持的HTTP操作"})   
@@ -97,7 +97,7 @@ def task_view(request):
             for task in  list(keys(cTasks)):
                 if task.startswith('OpsManage.tasks.ansible') or task.startswith('OpsManage.tasks.sched'):
                     regTaskList.append(task)              
-        except Exception, ex:
+        except Exception as ex:
             logger.warn(msg="获取Celery Task失败: {ex}".format(ex=str(ex)))
             taskLog = []
         return render(request,'task/task_view.html',
@@ -129,20 +129,20 @@ def task_view(request):
                     data['state'] = taskLog.state
                     data['runtime'] = taskLog.runtime
                     return  JsonResponse({"code":200,"data":data,"msg":"操作成功"})
-                except Exception,ex:
+                except Exception as ex:
                     logger.warn(msg="查看Celery Task运行日志失败: {ex}".format(ex=str(ex)))
                     return  JsonResponse({"code":500,"data":None,"msg":"日志查看失败。"})
             elif op == 'delete':
                 try:
                     taskLog.delete()
                     return  JsonResponse({"code":200,"data":None,"msg":"删除成功"})
-                except Exception,ex:
+                except Exception as ex:
                     return  JsonResponse({"code":500,"data":ex,"msg":"日志删除失败"})
             elif op == 'kill':
                 try:
                     revoke(taskLog.task_id, terminate=True)
                     return  JsonResponse({"code":200,"data":None,"msg":"任务终止成功"})
-                except Exception,ex:
+                except Exception as ex:
                     logger.warn(msg="终止任务失败: {ex}".format(ex=str(ex)))
                     return  JsonResponse({"code":500,"data":ex,"msg":"任务终止成功"})                
         else:return  JsonResponse({"code":500,"data":"终止任务失败: {ex}".format(ex=str(ex)),"msg":"不支持的操作或者您没有权限操作操作此项。"})            

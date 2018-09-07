@@ -20,12 +20,11 @@
                                 <thead>
                                     <tr>
                                     	<th>产品线</th>
-                                    	<th>项目</th>
+                                    	<th>服务模块</th>
                                     	<th>环境</th>
-                                        <th>仓库目录</th>
-                                        <th>仓库地址</th>
-                                        <th>排除文件</th>
-                                        <th>目标服务器</th>
+                                        <th>开放端口</th>
+                                        <th>环境变量</th>
+                                        <th>k8s主机地址</th>
                                         <th class="text-center">操作</th>
                                     </tr>
                                 </thead>
@@ -33,39 +32,24 @@
                                 	{% for ds in deployList %}
                                 		<tr class="odd gradeX">
                                 			<td>{{ds.project.project_name}} </td>
-                                			<td>{{ds.project_name}} </td>
+                                			<td>{{ds.service.service_name}} </td>
                                 			<td>
-                                				{% if ds.project_env == 'sit' %}
+                                				{% if ds.project_env == 'test' %}
                                 					<span class="label label-success">测试环境</span>
-                                				{% elif ds.project_env == 'qa' %}
-                                					<span class="label label-warning">预生产环境</span>
                                 				{% elif ds.project_env == 'uat' %}
+                                					<span class="label label-warning">灰度环境</span>
+                                				{% elif ds.project_env == 'prod' %}
                                 					<span class="label label-danger">生产环境</span>
                                 				{% endif %}
                                 			</td>
                                 			<td>
-                                				{{ds.project_repo_dir}} 
+                                				{{ds.project_service_port}}
                                 			</td>
-                                			<td>{{ds.project_address}} </td>
-                                			<td>
-												<button type="button" class="btn btn-default" title="文件列表" data-container="body" data-toggle="popover" data-placement="top" data-content="{{ds.project_exclude}}">
-                                    				排除文件
-                                				</button>                                			
-                                				
-                                			</td>
-                                			<td>
-												<button type="button" class="btn btn-default" title="成员"  
-														data-container="body" data-toggle="popover" data-placement="top" 
-														data-content="
-														{% for ds in ds.number %}
-															{{ds.server}}<br>
-														{% endfor %} 
-														" data-html="true">
-													目标服务器
-												</button>                                			
-                                			</td>
+                                			<td>{{ds.project_env_var}} </td>
+                                			<td>{{ ds.k8s.k8s_host }}</td>
                                 			<td class="text-center">
-												<a href="/order/deploy/apply/{{ds.id}}/"><button  type="button" class="btn btn-default"><abbr title="部署申请"><i class="fa fa-play-circle-o"></i></button></a> 			     																						           			
+                                                <a href="/order/deploy/apply/{{ds.id}}/"><button  type="button" class="btn btn-default"><abbr title="部署申请"><i class="fa fa-play-circle-o"></i></abbr></button></a>
+                                                <a href="/deploy_order/rollback/{{ds.id}}/"><button  type="button" class="btn btn-default"><abbr title="项目回滚"><i class="fa fa-undo"></i></abbr></button></a>
                                 			</td>
                                 		</tr>
                                 	{% endfor %}
@@ -74,7 +58,7 @@
                             <!-- /.table-responsive -->
                             <div class="well">
                                 <h4>产品线管理说明</h4>
-                                <p>预生产环境与生产环境的代码部署需要审批，测试环境则不需要。</p>
+                                <p>生产环境的代码部署需要审批，灰度环境与测试环境则不需要。</p>
                                 <a class="btn btn-default btn-lg btn-block" target="_blank" href="/deploy_add"><i class="fa fa-plus-circle "></i>新建代码部署</a>
                             </div>
                         </div>

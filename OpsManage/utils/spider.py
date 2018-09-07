@@ -28,8 +28,8 @@ class Requests(object):
             elif encoding=='GB2312': response = response.decode('gbk', 'ignore').encode('utf-8', 'ignore')
             elif encoding=='EUC-TW': response = response.decode('gbk', 'ignore').encode('utf-8', 'ignore')
             else: response = response.decode(encoding, 'ignore').encode('utf-8', 'ignore')
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             return False
         return response
     
@@ -40,8 +40,8 @@ class Requests(object):
             else:
                 head = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36',}
                 response = requests.post(url,data,headers=head,timeout=3)
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             return False
         return response 
 
@@ -70,6 +70,6 @@ class Spider(Requests):
                 return response.get('text') + '\n' + content
             elif url:return response.get('text') + '\n点击查看：' + url
             else:return response.get('text')
-        except Exception,e:
+        except Exception as e:
             msg = '**[chat]** Error: ' + str(e)
-            return '报告大人：问题太难了，小的回答不上[尴尬]~' 
+            return '报告大人：问题太难了，小的回答不上[尴尬]~'

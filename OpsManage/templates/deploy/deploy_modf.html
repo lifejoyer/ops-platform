@@ -53,28 +53,19 @@
 										</div>
                                         <div class="form-group">
                                             <label><font color='red'>* </font>项目环境</label>
-                                            <select class="form-control" id="project_env" required>
-                                            	{% if project.project_env == 'test' %}
-	                                            	<option selected="selected" value="test" name="project_env">测试环境</option>
-	                                            	<option value="uat" name="project_env">灰度环境</option>
-	                                            	<option value="prod" name="project_env">生产环境</option>
-	                                            {% elif project.project_env == 'uat' %}
-	                                            	<option value="test" name="project_env">测试环境</option>
-	                                            	<option selected="selected" value="uat" name="project_env">灰度环境</option>
-	                                            	<option value="prod" name="project_env">生产环境</option>
-	                                            {% elif project.project_env == 'prod' %}
-	                                            	<option value="test" name="project_env">测试环境</option>
-	                                            	<option value="uat" name="project_env">灰度环境</option>
-	                                            	<option selected="selected" value="prod" name="project_env">生产环境</option>
-	                                            {% else %}
-													<option value="">请选择项目环境</option>
-	                                            	<option value="test" name="project_env">测试环境</option>
-	                                            	<option value="uat" name="project_env">灰度环境</option>
-	                                            	<option value="prod" name="project_env">生产环境</option>
-                                            	{% endif %}
-
-                                            </select>
+                                            <select class="form-control" id="project_env" name="project_env" disabled required>
+                                                {% if project.project_env == "test" %}
+                                                   <option value="test" name="project_env">测试环境</option>
+                                                {% elif project.project_env == "uat" %}
+                                                   <option value="uat" name="project_env">灰度环境</option>
+                                                {% elif project.project_env == "prod" %}
+                                                    <option value="prod" name="project_env">生产环境</option>
+                                                {% else %}
+                                                    <option value="">请选择项目环境</option>
+                                                {% endif %}
+									        </select>
                                         </div>
+                                    <div id="unProdEnvConfig" class="form-group"  {% if project.project_env == 'prod' %} style="display: none;" {% endif %}>
                                         <div class="form-group">
                                             <input class="form-control" id="project_repertory" name="project_repertory" value="git" type="hidden" />
                                         </div>      
@@ -111,10 +102,9 @@
                                             <label><font color='red'>* </font>源代码存放地址</label>
                                             <input class="form-control" id="project_repo_dir" value="{{project.project_repo_dir|default:""}}" required pattern="^/.*/$" title="正确格式：/path/" disabled>
                                         </div>  										                                                                           
-
+                                    </div>
                                         <button type="reset" class="btn btn-default" >撤销</button>
-                                        <button type="button" class="btn btn-default" onclick="addDeployProject(this,'audit')" >提交</button>
-                                    
+                                        <button type="button" class="btn btn-default" onclick="addDeployProject(this)" >提交</button>
                                 </div>
                                 <!-- /.col-lg-6 (nested) -->
                                 <div class="col-lg-6">
@@ -148,12 +138,19 @@
 							        <div class="form-group">
 								        <label><font color='red'>* </font>对外开放端口</label>
                                         <div class="form-inline from-group">
-										<input type="text" class="form-control" name="project_service_port"
-											id="project_service_port" value="{{ project.project_service_port|default:"" }}" placeholder="请输入服务端口" /> <input type="text"
-                                            class="form-control" id="project_debug_port" name="project_debug_port" value="{{ project.project_debug_port|default:"" }}"
+										<input type="number" class="form-control" name="project_service_port"
+											id="project_service_port" value="{{ project.project_service_port }}" placeholder="请输入服务端口" onmouseleave="check_service_port('project_service_port')" /> <input type="number"
+                                            class="form-control" id="project_debug_port" name="project_debug_port" value="{{ project.project_debug_port }}" onmouseleave="check_service_port('project_debug_port')"
                                             placeholder="请输入debug端口" />
                                         </div>
 								        <p class="help-block">例如：20001,只能是20000-40000之间的端口</p>
+							        </div>
+							        <div class="form-group">
+								        <label><font color='red'>* </font>副本数</label>
+                                        <div class="form-inline from-group">
+                                            <input type="number" class="form-control" value="{{ project.project_replication }}" name="project_replication" id="project_replication" placeholder="请输入副本数"  onkeyup="check_replication_number('project_replication')" />
+                                        </div>
+								        <p class="help-block" id="help-result-info">例如：1,只能是1~5之间的整数</p>
 							        </div>
                                     <div class="form-group">
                                         <label>容器环境变量</label>
@@ -165,6 +162,30 @@
                                         <input class="form-control"  type="text" id="project_mount_path" value="{{ project.project_mount_path|default:"" }}" name="project_mount_path" />
 								        <p class="help-block">例如：/usr/local/tomcat/logs 只能是目录</p>
 							        </div>
+                                {% if project.project_env == 'prod' %}
+   							        <div class="form-group" id="extConfig">
+								        <label><font color='red'>* </font>部署授权组<i class="fa fa-info-circle" data-toggle="tooltip" title="选择的用户组能够授权部署工单"></i></label> <br>
+								        <select class="form-control" name="project_audit_group" id="project_audit_group">
+									        {% for ds in groupList %}
+                                                {% if project.project_audit_group == ds.id %}
+                                                    <option name="project_audit_group" selected="selected" value="{{ds.id}}">{{ds.name}}</option>
+                                                {% else %}
+										            <option name="project_audit_group"  value="{{ds.id}}">{{ds.name}}</option>
+                                                {% endif %}
+									        {% endfor %}
+								        </select>
+							        </div>
+                                {% else %}
+							        <div class="form-group" id="extConfig" style="display: none;">
+								        <label><font color='red'>* </font>部署授权组<i class="fa fa-info-circle" data-toggle="tooltip" title="选择的用户组能够授权部署工单"></i></label> <br>
+								        <select class="form-control" name="project_audit_group" id="project_audit_group">
+									        <option name="project_audit_group" id="project_audit_group" selected="selected" value="">选择一个授权组</option>
+									        {% for ds in groupList %}
+										        <option name="project_audit_group"  value="{{ds.id}}">{{ds.name}}</option>
+									        {% endfor %}
+								        </select>
+							        </div>
+                                {% endif %}
                                 </div>
                                </form> 
                             </div>
@@ -193,6 +214,45 @@ $(document).ready(function() {
     });
 });
 
+function check_replication_number(id){
+    var btnObj=$('#'+id)
+    var data=btnObj.val()
+    if(data){
+        if(Number(data) > 5 || Number(data) < 1 ){
+            btnObj.val('1')
+        }
+    }else{
+        btnObj.val('1')
+    }
+}
+
+function check_service_port(id) {
+    var btnObj=$('#'+id)
+    var data=btnObj.val()
+        if(data){
+            if(!isRealNum(data) || Number(data) > 50000 || Number(data) < 20000){
+                btnObj.parent().addClass("has-error")
+                return false
+            }else{
+                btnObj.parent().removeClass("has-error")
+                return true
+            }
+        }else{
+            return true
+        }
+}
+
+function isRealNum(val){
+    if(val === "" || val ==null){
+        return false;
+    }
+    if(!isNaN(val)){
+        return true;
+    }else{
+        return false;
+    }
+}
+
 var project_type = '{{project.project_type}}';
 function setShellcmd(id){
 	if (id=='yes'){
@@ -218,8 +278,7 @@ function setAceEditMode(model) {
 	    enableBasicAutocompletion: true,
 	    enableSnippets: true,
 	    enableLiveAutocompletion: true
-	}); 
-			 
+	});
 };
 setAceEditMode("sh");
 
@@ -227,80 +286,91 @@ function oBtEnvType() {
 	   var obj = document.getElementById("project_env"); 
 	   var index = obj.selectedIndex;
 	   var value = obj.options[index].value; 
-	   if (value=="uat"){
-		   document.getElementById("extConfig").style.display = "";  	   
+	   if (value=="prod"){
+		   document.getElementById("extConfig").style.display = "";
+		   document.getElementById("unProdEnvConfig").style.display = "none";
 	   }
 	   else {
-		   document.getElementById("extConfig").style.display = "none";	
+		   document.getElementById("extConfig").style.display = "none";
+		   document.getElementById("unProdEnvConfig").style.display = "";
 	   }
 }
 
 
-function addDeployProject(obj) {	
-	var btnObj = $(obj);
-	var required = ["project_id","service_id","project_env","project_address","project_repo_passwd","project_repo_user","jenkins_id","k8s_id","project_repo_dir"];
-	btnObj.attr('disabled',true);
-		var form = document.getElementById('add_deploy_project');
-		for (var i = 0; i < form.length; ++i) {
-			var name = form[i].name;
-			var value = form[i].value;	
-			idx = $.inArray(name, required);						
-			if (idx >= 0 && value.length == 0){
-				window.wxc.xcConfirm("请注意必填项不能为空~", window.wxc.xcConfirm.typeEnum.error);
-				btnObj.removeAttr('disabled');
-				return false;
-			};					
-		};				
-		var editor = ace.edit("project_local_command");
-	    var project_local_command = editor.getSession().getValue(); 
-	    var formData = new FormData();	
-		var serverList = new Array();
-		$("#server option:selected").each(function () {
-			serverList.push($(this).text())
-		})	    
-	    formData.append('project_env',$('#project_env').val());
-	    formData.append('project_address',$('#project_address').val());
-	    formData.append('project_dir',$('#project_dir').val());
-	    formData.append('project_repo_dir',$('#project_repo_dir').val());
-	    formData.append('project_repo_user',$('#project_repo_user').val());	
-	    formData.append('project_repo_passwd',$('#project_repo_passwd').val());
-	    formData.append('project_branch', $('#project_branch').val());
-	    formData.append('project_id',$('#project_id option:selected').val());
-	    formData.append('service_id',$('#service_id option:selected').val());
-	    formData.append('project_repertory',$('#project_repertory').val());
-	    formData.append('project_local_command',project_local_command);
-	    formData.append('project_type',project_type);
-	    formData.append('jenkins_id',$('#jenkins_id option:selected').val());
-	    formData.append('k8s_id',$('#k8s_id option:selected').val());
-	    formData.append('project_service_port',$('#project_service_port').val());
-	    formData.append('project_debug_port',$('#project_debug_port').val());
-	    formData.append('project_env_var',$('#project_env_var').val());
-        formData.append('project_mount_path',$('#project_mount_path').val());
+function addDeployProject(obj) {
+    var btnObj = $(obj);
+    project_env = "{{ project.project_env }}"
+    if (project_env == "prod") {
+        var required = ["project_id", "service_id", "project_env", "k8s_id", "project_audit_group"];
+    } else {
+        var required = ["project_id", "service_id", "project_env", "project_address", "project_repo_passwd", "project_repo_user", "jenkins_id", "k8s_id", "project_repo_dir"];
+    }
+    btnObj.attr('disabled', true);
+    var form = document.getElementById('add_deploy_project');
+    for (var i = 0; i < form.length; ++i) {
+        var name = form[i].name;
+        var value = form[i].value;
+        idx = $.inArray(name, required);
+        if (idx >= 0 && value.length == 0) {
+            window.wxc.xcConfirm("请注意必填项不能为空~", window.wxc.xcConfirm.typeEnum.error);
+            btnObj.removeAttr('disabled');
+            return false;
+        };
+    };
+    if (!check_service_port('project_service_port') || !check_service_port('project_debug_port')) {
+        window.wxc.xcConfirm("服务端口填写数字,且数字只能为20000~50000", window.wxc.xcConfirm.typeEnum.error);
+        btnObj.removeAttr('disabled');
+        return false;
+    }
 
-		$.ajax({
-/* 				dataType: "JSON", */
-			url:'/deploy_mod/' + {{project.id}} + '/', //请求地址
-			type:"POST",  //提交类似
-		    processData: false,
-		    contentType: false,				
-			data:formData,  //提交参数
-			success:function(response){
-				btnObj.removeAttr('disabled');				
-				if (response["code"] == 200){
-					window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.success);
-					window.location.href="/deploy_list";
-				}
-				else {
-					window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.error);
-				};
-			},
-	    	error:function(response){
-	    		btnObj.removeAttr('disabled');
-	    		window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.error);
-	    	}
-		});	
-	}
+    var editor = ace.edit("project_local_command");
+    var project_local_command = editor.getSession().getValue();
+    var formData = new FormData();
+    formData.append('project_env', $('#project_env').val());
+    formData.append('project_address', $('#project_address').val());
+    formData.append('project_dir', $('#project_dir').val());
+    formData.append('project_repo_dir', $('#project_repo_dir').val());
+    formData.append('project_repo_user', $('#project_repo_user').val());
+    formData.append('project_repo_passwd', $('#project_repo_passwd').val());
+    formData.append('project_branch', $('#project_branch').val());
+    formData.append('project_id', $('#project_id option:selected').val());
+    formData.append('service_id', $('#service_id option:selected').val());
+    formData.append('project_repertory', $('#project_repertory').val());
+    formData.append('project_local_command', project_local_command);
+    formData.append('project_type', project_type);
+    formData.append('jenkins_id', $('#jenkins_id option:selected').val());
+    formData.append('k8s_id', $('#k8s_id option:selected').val());
+    formData.append('project_service_port', $('#project_service_port').val());
+    formData.append('project_debug_port', $('#project_debug_port').val());
+    formData.append('project_env_var', $('#project_env_var').val());
+    formData.append('project_mount_path', $('#project_mount_path').val());
+    formData.append('project_audit_group', $('#project_audit_group').val());
+    formData.append('project_replication', $('#project_replication').val());
 
+    $.ajax({
+        /* 	dataType: "JSON", */
+        url: '/deploy_mod/' + {{project.id}} +'/', //请求地址
+        type: "POST",  //提交类似
+        processData: false,
+        contentType: false,
+        data: formData,  //提交参数
+        success: function (response) {
+            btnObj.removeAttr('disabled');
+            if (response["code"] == 200) {
+                window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.success);
+                window.location.href = "/deploy_list";
+            }
+            else {
+                window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.error);
+            }
+            ;
+        },
+        error: function (response) {
+            btnObj.removeAttr('disabled');
+            window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.error);
+        }
+    });
+}
 
 </script>
 

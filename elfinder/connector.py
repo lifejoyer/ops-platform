@@ -1,11 +1,13 @@
+#!/usr/bin/env python
+# _#_ coding:utf-8 _*_
+
 import os, re, time, urllib
 from django.utils.translation import ugettext as _
-from exceptions import ElfinderErrorMessages, VolumeNotFoundError, DirNotFoundError, FileNotFoundError, NamedError, NotAnImageError
-from utils.volumes import instantiate_driver
+from .exceptions import ElfinderErrorMessages, VolumeNotFoundError, DirNotFoundError, FileNotFoundError, NamedError, NotAnImageError
+from .utils.volumes import instantiate_driver
 import sys
-reload(sys)
-sys.setdefaultencoding("utf-8")#fix ascii code bug
 from collections import defaultdict
+
 
 class ElfinderConnector:
     """
@@ -119,7 +121,7 @@ class ElfinderConnector:
         """
         errors = []
         for msg in args:
-            if not isinstance(msg, basestring):
+            if not isinstance(msg, str):
                 errors += msg
             else:
                 errors.append(msg)
@@ -195,10 +197,10 @@ class ElfinderConnector:
         method must be used.
         """
 
-        if isinstance(init, basestring):
+        if isinstance(init, str):
             init = int(init)
             
-        if isinstance(tree, basestring):
+        if isinstance(tree, str):
             tree = int(tree)
 
         if not init and not target:
@@ -329,7 +331,7 @@ class ElfinderConnector:
         method must be used.
         """
         
-        if isinstance(download, basestring):
+        if isinstance(download, str):
             download = int(download)
         
         try:
@@ -426,7 +428,7 @@ class ElfinderConnector:
                         dirs = dirs[1:]                    
                     dir_ = volume.mkdir(target, dirs)
                     result['added'].append(dir_)
-                except Exception, e:
+                except Exception as e:
                     result['warning'] = self.error(ElfinderErrorMessages.ERROR_UPLOAD_FILE, dirs, e)
             return result
         except NamedError as e:
@@ -529,12 +531,12 @@ class ElfinderConnector:
         method must be used.
         """
         chunk_flag = False
-        if isinstance(range,(unicode,basestring)):
+        if isinstance(range, str):
             chunk_range = range.rsplit(',')
             chunk_file_size = chunk_range[2]
             if chunk_range[0] == '0' or chunk_range[0] == 0:
                 chunk_flag = True
-        if isinstance(html, basestring):
+        if isinstance(html, str):
             html = int(html)
         
         header = { 'Content-Type' : 'text/html; charset=utf-8' } if html else {}
@@ -565,7 +567,7 @@ class ElfinderConnector:
                     else:
                         file_ = volume.upload(uploaded_file, target)
                         result['added'].append(file_)
-                except Exception, e:
+                except Exception as e:
                     result['warning'] = self.error(ElfinderErrorMessages.ERROR_UPLOAD_FILE, uploaded_file.name, e)
                     self._uploadDebug = 'Upload error: Django handler error'
         else:  # directory
@@ -608,7 +610,7 @@ class ElfinderConnector:
                             else:
                                 file_ = volume.upload(files[file_index], target)
                         result['added'].append(file_)
-                    except Exception, e:
+                    except Exception as e:
                         result['warning'] = self.error(ElfinderErrorMessages.ERROR_UPLOAD_FILE, files[file_index].name, e)
                         self._uploadDebug = 'Upload error: Django handler error'
         return result
@@ -622,7 +624,7 @@ class ElfinderConnector:
         method must be used.
         """
         
-        if isinstance(cut, basestring):
+        if isinstance(cut, str):
             cut = int(cut)
 
         error = ElfinderErrorMessages.ERROR_MOVE if cut else ElfinderErrorMessages.ERROR_COPY
@@ -750,7 +752,7 @@ class ElfinderConnector:
         method must be used.
         """
         
-        if isinstance(options, basestring):
+        if isinstance(options, str):
             options = int(options)
         
         files = []

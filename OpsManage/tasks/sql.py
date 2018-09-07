@@ -22,8 +22,8 @@ def recordSQL(exe_user,exe_db,exe_sql,exec_status,exe_result=None):
                                       exe_result = exe_result
                                       )
         return True
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False 
     
 @task  
@@ -63,7 +63,7 @@ def sendOrderNotice(order_id,mask):
                                                           order_url=order_url)
     try:
         to_user = User.objects.get(id=order.order_executor)
-    except Exception, ex:
+    except Exception as ex:
         return ex
     if order.order_status == 1:to_username = User.objects.get(id=order.order_executor).username
     else:to_username = User.objects.get(id=order.order_user).username

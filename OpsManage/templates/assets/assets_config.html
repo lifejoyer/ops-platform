@@ -295,6 +295,24 @@
 							</select>
 						</div>
 					</div>
+                    <div class="form-group">
+						<label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>工作目录</strong></label>
+						<div class="col-sm-6">
+                            <select class="form-control" name="service_root_path" id="service_root_select">
+                                <option value="0" name="service_root_path" selected="selected">按包名称</option>
+                                <option value="1" name="service_root_path">ROOT目录</option>
+							</select>
+						</div>
+					</div>
+                    <div class="form-group">
+						<label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>编译类型</strong></label>
+						<div class="col-sm-6">
+                            <select class="form-control" name="service_pom_path" id="service_pom_select">
+                                <option value="0" name="service_pom_path" selected="selected">全局编译</option>
+                                <option value="1" name="service_pom_path" >模块编译</option>
+							</select>
+						</div>
+					</div>
 				</form>
 			</div>
 			<div class="modal-footer">
@@ -483,6 +501,34 @@
 							    </select>
 						    </div>
 					    </div>
+                        <div class="form-group">
+						    <label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>工作目录</strong></label>
+						    <div class="col-sm-6">
+                                <select class="form-control" name="service_root_path" id="service_root_select">
+                                    {% if ds.service_root_path == '1' %}
+                                        <option value="0" name="service_root_path" >按包名称</option>
+                                        <option value="1" name="service_root_path" selected="selected">ROOT目录</option>
+                                    {% else %}
+                                        <option value="0" name="service_root_path" selected="selected">按包名称</option>
+                                        <option value="1" name="service_root_path" >ROOT目录</option>
+                                    {% endif %}
+							    </select>
+						    </div>
+					    </div>
+                        <div class="form-group">
+						    <label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>编译类型</strong></label>
+						    <div class="col-sm-6">
+                                <select class="form-control" name="service_pom_path" id="service_pom_select">
+                                    {% if ds.service_pom_path == '1' %}
+                                        <option value="0" name="service_pom_path" >全局编译</option>
+                                        <option value="1" name="service_pom_path" selected="selected">模块编译</option>
+                                    {% else %}
+                                        <option value="0" name="service_pom_path" selected="selected">全局编译</option>
+                                        <option value="1" name="service_pom_path" >模块编译</option>
+                                    {% endif %}
+							    </select>
+						    </div>
+					    </div>
 					</form>
 				</div>
 				<div class="modal-footer">
@@ -626,6 +672,8 @@
 				"project_id": $('#project_service_select option:selected').val(),
 				"project_name": $('#project_service_select option:selected').text(),
                 "service_type": $('#service_type_select option:selected').val(),
+                "service_root_path": $('#service_root_select option:selected').val(),
+                "service_pom_path": $('#service_pom_select option:selected').val(),
 				"service_name": document.getElementById("service_name").value,
 			}), //提交参数
 			success:function(response){

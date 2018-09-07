@@ -25,7 +25,7 @@ def wssh(request,sid):
             if user_server:
                 return render(request,'webssh/webssh.html',{"user":request.user,"server":server,
                                                          "serverList":serverList}) 
-    except Exception,ex:
+    except Exception as ex:
         logger.error(msg="请求webssh失败: {ex}".format(ex=str(ex)))
         return render(request,'webssh/webssh.html',{"user":request.user,"errorInfo":"你没有权限访问这台服务器！"})    
     

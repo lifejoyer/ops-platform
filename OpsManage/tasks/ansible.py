@@ -22,12 +22,12 @@ def AnsibleScripts(**kw):
             if kw.has_key('hosts'):
                 try:
                     sList = list(kw.get('hosts'))
-                except Exception, ex:
+                except Exception as ex:
                     return ex
             else:
                 try:
                     sList = json.loads(script.script_server)
-                except Exception, ex:
+                except Exception as ex:
                     return ex           
             if kw.has_key('logs'):
                 logId = AnsibleRecord.Model.insert(user='celery',ans_model='script',ans_server=','.join(sList),ans_args=filePath)
@@ -35,8 +35,8 @@ def AnsibleScripts(**kw):
             ANS = ANSRunner(resource,redisKey=None,logId=logId)
             ANS.run_model(host_list=sList,module_name='script',module_args="{filePath} {args}".format(filePath=filePath,args=script.script_args))
             return ANS.get_model_result()
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False
     
     
@@ -50,13 +50,13 @@ def AnsiblePlayBook(**kw):
             if kw.has_key('hosts'):
                 try:
                     sList = list(kw.get('hosts'))
-                except Exception, ex:
+                except Exception as ex:
                     return ex
             else:
                 try:
                     numberList = Ansible_Playbook_Number.objects.filter(playbook=playbook)
                     if numberList:sList = [ s.playbook_server for s in numberList ]
-                except Exception, ex:
+                except Exception as ex:
                     return ex           
             if kw.has_key('logs'):
                 logId = AnsibleRecord.PlayBook.insert(user='celery',ans_id=playbook.id,ans_name=playbook.playbook_name,
@@ -65,6 +65,6 @@ def AnsiblePlayBook(**kw):
             ANS = ANSRunner(resource,redisKey=None,logId=logId)
             ANS.run_playbook(host_list=sList, playbook_path=filePath)
             return ANS.get_playbook_result()
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False       

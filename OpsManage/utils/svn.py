@@ -2,22 +2,19 @@
 # _#_ coding:utf-8 _*_ 
 '''svn版本控制方法'''
 
-import commands,os,sys
-
-reload(sys)
-sys.setdefaultencoding('utf8')
+import subprocess,os
 
 
 class SvnTools(object):
        
     def reset(self,path,commintId):
         cmd = "cd {path} && svn update -r {commintId}".format(path=path,commintId=commintId)
-        return commands.getstatusoutput(cmd)
+        return subprocess.getstatusoutput(cmd)
     
     def log(self,path,number=None):
         vList = []
         cmd = "cd {path} && svn log -l {number} -q".format(path=path,number=number)
-        status,result = commands.getstatusoutput(cmd)
+        status,result = subprocess.getstatusoutput(cmd)
         if status == 0: 
             for log in result.split('\n'):
                 if log.startswith('---'):continue
@@ -42,20 +39,20 @@ class SvnTools(object):
 
     def checkOut(self,path,name=None):
         cmd = "cd {path} && svn update".format(path=path)
-        return commands.getstatusoutput(cmd) 
+        return subprocess.getstatusoutput(cmd)
     
     def clone(self,url,dir,user=None,passwd=None):    
         if user and passwd:cmd = "svn co {url}  --username {user} --password {passwd} {dir}".format(url=url,user=user,passwd=passwd,dir=dir)
         else:cmd = "svn co {url}  {dir}".format(url=url,dir=dir)
-        return commands.getstatusoutput(cmd)    
+        return subprocess.getstatusoutput(cmd)
     
     def pull(self,path):     
         cmd = "cd {path} && svn update".format(path=path)           
-        return commands.getstatusoutput(cmd)   
+        return subprocess.getstatusoutput(cmd)
     
     def show(self,path,cid,branch=None): 
         cmd = "cd {path} && svn update && svn diff -r {cid}".format(path=path,cid=cid)
-        return commands.getstatusoutput(cmd)    
+        return subprocess.getstatusoutput(cmd)
 
     def mkdir(self,dir):
         if os.path.exists(dir) is False:os.makedirs(dir)              

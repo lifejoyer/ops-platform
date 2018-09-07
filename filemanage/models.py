@@ -4,9 +4,6 @@ from __future__ import unicode_literals
 from django.db import models
 from orders.models import Order_System
 # Create your models here.
-import sys
-reload(sys)
-sys.setdefaultencoding("utf-8")
 
 
 class FileUpload_Audit_Order(models.Model):

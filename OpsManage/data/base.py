@@ -6,8 +6,8 @@
 '''
 import redis
 from django.conf import settings
-import MySQLdb  
-from MySQLdb.cursors import DictCursor  
+import pymysql
+from pymysql.cursors import DictCursor
 from DBUtils.PooledDB import PooledDB  
 from OpsManage.utils.logger import logger
 
@@ -56,7 +56,7 @@ class MySQLPool(APBase):
         '''返回字典类型结果集'''   
         if APBase.MYSQL_POOLS.get(self.poolKeys) is None:
             try:
-                pool = PooledDB(creator=MySQLdb, mincached=1 , maxcached=20 ,  
+                pool = PooledDB(creator=pymysql, mincached=1 , maxcached=20 ,
                                       host=host , port=port , user=user , passwd=passwd ,  
                                       db=dbName,use_unicode=False,charset='utf8',
                                       cursorclass=DictCursor)  
@@ -70,7 +70,7 @@ class MySQLPool(APBase):
         '''返回列表类型结果集'''   
         if APBase.MYSQL_POOLS.get(self.poolKeys) is None:
             try:
-                pool = PooledDB(creator=MySQLdb, mincached=1 , maxcached=20 ,  
+                pool = PooledDB(creator=pymysql, mincached=1 , maxcached=20 ,
                                       host=host , port=port , user=user , passwd=passwd ,  
                                       db=dbName,use_unicode=False,charset='utf8')  
                 APBase.MYSQL_POOLS[self.poolKeys] = pool   
@@ -216,9 +216,9 @@ class MySQL(object):
         
     def connect(self,host,port,dbname,user,passwd):
         try:
-            conn = MySQLdb.connect(host,user,passwd,dbname,port)          
+            conn = pymysql.connect(host,user,passwd,dbname,port)
             return conn
-        except MySQLdb.Error as ex:
+        except pymysql.Error as ex:
             return False
                  
     def execute(self,sql,num=1000): 
@@ -310,7 +310,7 @@ class MySQL(object):
             
 if __name__=='__main__':   
     try:
-        mysql = MySQL('192.168.1.122',3306,'ops','abc+123','opsmanage')
+        mysql = MySQL('192.168.1.122',3306,'ops','abc+123','ops')
     except Exception as ex:
         print(ex)
     print(mysql.getVariables())

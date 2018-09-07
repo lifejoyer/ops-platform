@@ -39,12 +39,12 @@ def db_config(request):
                 audit_group.append(int(g))
             for g in groupList:
                 if g.id in audit_group:g.count = 1
-        except Exception,ex:
+        except Exception as ex:
             logger.warn(msg="获取SQL审核配置信息失败: {ex}".format(ex=str(ex)))
             config = None
         try:
             incept = Inception_Server_Config.objects.get(id=1)
-        except Exception, ex:
+        except Exception as ex:
             logger.warn(msg="获取Inception服务器信息失败: {ex}".format(ex=str(ex)))
             incept = None
         return render(request,'database/db_config.html',{"user":request.user,"incept":incept,
@@ -63,7 +63,7 @@ def db_sqlorder_run(request,id):
         incept = Inception_Server_Config.objects.get(id=1)       
         if request.user.id != order.order_executor:order.prem = 0
         else:order.prem = 1
-    except Exception,ex:
+    except Exception as ex:
         logger.error(msg="执行SQL[{id}]错误: {ex}".format(id=id,ex=str(ex)))
         return render(request,'database/db_sqlorder_run.html',{"user":request.user,"errinfo":"工单不存在，或者您没有权限处理这个工单"})
     try:
@@ -74,7 +74,7 @@ def db_sqlorder_run(request,id):
                    passwd=order.sql_audit_order.order_db.db_passwd,
                    port=order.sql_audit_order.order_db.db_port
                    )  
-    except Exception,ex:
+    except Exception as ex:
         return render(request,'database/db_sqlorder_run.html',{"user":request.user,"errinfo":"Inception配置错误"})
     if request.method == "GET":
         oscStatus = None
@@ -84,7 +84,7 @@ def db_sqlorder_run(request,id):
         order.order_executor = User.objects.get(id=order.order_executor).username  
         try:
             order.sql_audit_order.order_db.db_service = Service_Assets.objects.get(id=order.sql_audit_order.order_db.db_service)
-        except Exception, ex:
+        except Exception as ex:
             order.sql_audit_order.order_db.db_service = '未知'
         if order.order_status in [5,6,9] and order.sql_audit_order.order_type=='online':   
             sqlResultList = SQL_Order_Execute_Result.objects.filter(order=order.sql_audit_order)
@@ -121,7 +121,7 @@ def db_sqlorder_run(request,id):
             try:
                 count = SQL_Order_Execute_Result.objects.filter(order=order.sql_audit_order).count() 
                 if count > 0:return JsonResponse({'msg':"该SQL已经被执行过，请勿重复执行","code":500,'data':[]})
-            except Exception,ex:
+            except Exception as ex:
                 logger.warn(msg="执行SQL[{id}]错误: {ex}".format(id=id,ex=str(ex)))
             if  order.sql_audit_order.order_type == 'online':          
                 try:
@@ -155,7 +155,7 @@ def db_sqlorder_run(request,id):
                                                                         execute_time = ds.get('execute_time'),
                                                                         sqlsha = ds.get('sqlsha1'),
                                                                         )
-                            except Exception, ex:
+                            except Exception as ex:
                                 logger.error(msg="记录SQL错误: {ex}".format(ex=str(ex)))
                             if ds.get('errlevel') > 0 and ds.get('errmsg'):count = count + 1
                             sList.append({'sql':ds.get('sql'),'row':ds.get('affected_rows'),'errmsg':ds.get('errmsg')})
@@ -171,7 +171,7 @@ def db_sqlorder_run(request,id):
                             return JsonResponse({'msg':"SQL执行成功","code":200,'data':sList})
                     else:
                         return JsonResponse({'msg':result.get('errinfo'),"code":500,'data':[]}) 
-                except Exception, ex:
+                except Exception as ex:
                     logger.error(msg="执行SQL[{id}]错误: {ex}".format(id=id,ex=str(ex)))
                     return JsonResponse({'msg':str(ex),"code":200,'data':[]})  
             elif order.sql_audit_order.order_type == 'file':
@@ -262,7 +262,7 @@ def db_sql_control(request):
                                                             audit_group = json.dumps(gList),                                                                  
                                                             )
                 return JsonResponse({'msg':"修改成功","code":200,'data':[]})
-            except Exception, ex:
+            except Exception as ex:
                 logger.error(msg="更新数据表[opsmanage_sql_audit_control]错误: {ex}".format(ex=str(ex)))
                 return JsonResponse({'msg':"修改失败："+str(ex),"code":500,'data':[]}) 
         else:
@@ -277,7 +277,7 @@ def db_sql_control(request):
                                                 audit_group = json.dumps(gList),  
                                                 )   
                 return JsonResponse({'msg':"修改成功","code":200,'data':[]})
-            except Exception,ex:
+            except Exception as ex:
                 logger.error(msg="写入数据表[opsmanage_sql_audit_control]错误: {ex}".format(ex=str(ex)))
                 return JsonResponse({'msg':"修改失败: "+str(ex),"code":500,'data':[]}) 
             
@@ -349,7 +349,7 @@ def db_ops(request):
         sqlList = []
         try:
             dbServer = DataBase_Server_Config.objects.get(id=int(request.POST.get('dbId')))
-        except Exception, ex:
+        except Exception as ex:
             sqlList.append(ex)
             dbServer = None
         if dbServer:
@@ -369,7 +369,7 @@ def db_ops(request):
     elif request.method == "POST" and request.POST.get('opsTag') == '2':#优化建议
         try:
             dbServer = DataBase_Server_Config.objects.get(id=int(request.POST.get('dbId')))
-        except Exception, ex:
+        except Exception as ex:
             dbServer = None   
         if dbServer:    
             #先通过Inception审核语句
@@ -402,7 +402,7 @@ def db_ops(request):
         if re.match(r"^(\s*)?select(\S+)?(.*)", request.POST.get('sql').lower()):            
             try:
                 dbServer = DataBase_Server_Config.objects.get(id=int(request.POST.get('dbId')))
-            except Exception, ex:
+            except Exception as ex:
                 dbServer = None 
             if dbServer:
                 mysql = MySQLPool(host=dbServer.db_host,port=dbServer.db_port,user=dbServer.db_user,passwd=dbServer.db_passwd,dbName=dbServer.db_name)
@@ -417,7 +417,7 @@ def db_ops(request):
     elif request.method == "POST" and request.POST.get('opsTag') == '4' and request.user.is_superuser:#执行原生SQL         
         try:
             dbServer = DataBase_Server_Config.objects.get(id=int(request.POST.get('dbId')))
-        except Exception, ex:
+        except Exception as ex:
             dbServer = None 
         if dbServer:
             mysql = MySQLPool(host=dbServer.db_host,port=dbServer.db_port,user=dbServer.db_user,passwd=dbServer.db_passwd,dbName=dbServer.db_name)
@@ -452,7 +452,7 @@ def db_sql_dumps(request):
     if request.method == "POST":#执行原生SQL  
         try:
             dbServer = DataBase_Server_Config.objects.get(id=int(request.POST.get('dbId')))
-        except Exception, ex:
+        except Exception as ex:
             dbServer = None 
         if dbServer:
             mysql = MySQLPool(host=dbServer.db_host,port=dbServer.db_port,user=dbServer.db_user,passwd=dbServer.db_passwd,dbName=dbServer.db_name)

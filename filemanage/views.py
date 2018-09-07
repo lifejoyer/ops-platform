@@ -18,7 +18,7 @@ def file_upload_run(request,id):
         uploadfilesList = []
         try:
             order = Order_System.objects.get(id=id,order_type=2)
-        except Exception,ex:
+        except Exception as ex:
             return render(request,'filemanage/file_upload_run.html',{"user":request.user,"errInfo":ex})
         order.fileupload_audit_order.dest_server = json.loads(order.fileupload_audit_order.dest_server)
         for ds in UploadFiles.objects.filter(file_order=order.fileupload_audit_order):
@@ -30,7 +30,7 @@ def file_upload_run(request,id):
     elif request.method == "POST":
         try:
             order = Order_System.objects.get(id=id,order_type=2)
-        except Exception,ex:
+        except Exception as ex:
             return JsonResponse({'msg':ex,"code":500,'data':[]})  
         if request.user.is_superuser or request.user.id in [order.order_executor,order.order_user]:
             sList,resource = AssetsSource().queryAssetsByIp(ipList=request.POST.getlist('dest_server'))
@@ -64,7 +64,7 @@ def file_download_run(request,id):
     if request.method == "GET":
         try:
             order = Order_System.objects.get(id=id,order_type=3)
-        except Exception,ex:
+        except Exception as ex:
             return render(request,'filemanage/file_download_run.html',{"user":request.user,"errInfo":ex})
         order.filedownload_audit_order.dest_server = json.loads(order.filedownload_audit_order.dest_server)
         return render(request,'filemanage/file_download_run.html',{"user":request.user,"order":order,
@@ -72,7 +72,7 @@ def file_download_run(request,id):
     elif request.method == "POST":
         try:
             order = Order_System.objects.get(id=id,order_type=3)
-        except Exception,ex:
+        except Exception as ex:
             return JsonResponse({'msg':ex,"code":500,'data':[]})  
         if request.user.is_superuser or request.user.id in [order.order_executor,order.order_user]:
             sList,resource = AssetsSource().queryAssetsByIp(ipList=request.POST.getlist('dest_server'))
@@ -106,7 +106,7 @@ def file_downloads(request):
     if request.method == "POST":
         try:
             order = Order_System.objects.get(id=request.POST.get('id',0),order_type=3)
-        except Exception,ex:
+        except Exception as ex:
             return JsonResponse({'msg':ex,"code":500,'data':[]})
         if request.user.is_superuser or request.user.id in [order.order_executor,order.order_user]:
             sList,resource = AssetsSource().queryAssetsByIp(ipList=request.POST.getlist('dest_server'))

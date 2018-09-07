@@ -22,14 +22,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ''' celery config '''
 djcelery.setup_loader()
-BROKER_URL = 'redis://192.168.1.132:6379/4'
+BROKER_URL = 'redis://192.168.1.122:6379/4'
 CELERY_RESULT_BACKEND = 'djcelery.backends.database.DatabaseBackend'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER='pickle'
 CELERY_ACCEPT_CONTENT = ['pickle','json']
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24
-CELERYD_MAX_TASKS_PER_CHILD = 40
+CELERYD_MAX_TASKS_PER_CHILD = 500
 CELERY_TRACK_STARTED = True
 CELERY_ENABLE_UTC = False
 CELERY_TIMEZONE='Asia/Shanghai'
@@ -57,7 +57,7 @@ CELERY_DEFAULT_ROUTING_KEY = 'default'
 
 
 
-REDSI_KWARGS_LPUSH = {"host":'192.168.1.132','port':6379,'db':3}
+REDSI_KWARGS_LPUSH = {"host":'192.168.1.122','port':6379,'db':3}
 REDSI_LPUSH_POOL = None
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
@@ -76,7 +76,7 @@ CHANNEL_LAYERS = {
     "default": {
        "BACKEND": "asgi_redis.RedisChannelLayer",  # use redis backend
        "CONFIG": {
-            "hosts": [("192.168.1.132", 6379)],  #无密码方式
+            "hosts": [("192.168.1.122", 6379)],  #无密码方式
             "channel_capacity": {
                                    "http.request": 1000,
                                    "websocket.send*": 10000,
@@ -163,8 +163,6 @@ DATABASES = {
         'USER':'ops',
         'PASSWORD':'abc+123',
         'HOST':'192.168.1.122'
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
@@ -181,7 +179,7 @@ TIME_ZONE = 'Asia/Shanghai'
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (
-     '/mnt/OpsManage/OpsManage/static/',
+     '/data/OpsManage/OpsManage/static/',
     )
 
 MEDIA_ROOT = os.path.join(BASE_DIR,'upload/')
@@ -199,15 +197,15 @@ WORKSPACES = '/var/lib/opsmanage/workspaces/'
 LOGIN_URL = '/login'
 
 DOCKER_IMAGE={
-    "tomcat": "docker.jhh.com/tomcat-key:8.5.30",
-    "jdk": "docker.jhh.com/jdk:1.8v3"
+    "tomcat": "registry.cn-shanghai.aliyuncs.com/jhhjdk/tomcat8:v4",
+    "jdk": "registry.cn-shanghai.aliyuncs.com/jhhjdk/java:1.8"
 }
 
 DING_TALK="https://oapi.dingtalk.com/robot/send?access_token=8703ddca5f2418cc5fa72b18d187450766adcb6226ba2858e65f9707f5ed5ec9"
 
 DOCKER_REGISTRY={
-    "test": "docker.jhh.com",
-    "prod": "registry.cn-shanghai.aliyuncs.com/jinhh"
+    "test": "registry.docker.com",
+    "prod": "registry-vpc.cn-shanghai.aliyuncs.com/registryname"
 }
 
 PROJECT_SERVICE_IP={

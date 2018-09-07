@@ -16,12 +16,12 @@ class WebNotice(WebsocketConsumer):
     def connect(self,message,**kwargs):
         try:
             username = message['path'].strip('/').split('/')[-1]
-        except Exception, ex:
+        except Exception as ex:
             message.reply_channel.send({"accept":False}) 
             logger.error(msg="webssh连接失败: {ex}".format(ex=str(ex)))     
         try:
             user = User.objects.get(username=self.message.user)  
-        except Exception,ex:
+        except Exception as ex:
             message.reply_channel.send({"accept":False}) 
 
         if str(self.message.user) == str(username):
@@ -33,7 +33,7 @@ class WebNotice(WebsocketConsumer):
     def disconnect(self,message,**kwargs):
         try:
             user = User.objects.get(username=self.message.user)
-        except Exception,ex:
+        except Exception as ex:
             logger.error(msg="webssh获取用户[{user}]信息失败: {ex}".format(user=self.message.user,ex=str(ex)))
             pass
         Group(user.username).discard(message.reply_channel)    

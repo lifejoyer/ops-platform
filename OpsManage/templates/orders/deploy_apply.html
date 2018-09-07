@@ -3,7 +3,7 @@
 <div id="page-wrapper">
     <div class="row">
          <div class="col-lg-12">
-              <h1 class="page-header"><i class="fa fa-pencil-square-o"></i><code>{{project.project_name}}</code> 项目部署申请</h1>
+              <h1 class="page-header"><i class="fa fa-pencil-square-o"></i><code>{{project.project.project_name}}</code> 项目部署申请</h1>
          </div>
                 <!-- /.col-lg-12 -->
     </div>
@@ -24,17 +24,23 @@
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">项目名称</label>
 												 <div class="col-sm-6">
-                                            		<input class="form-control" name="order_project" value="{{project.project_name}}" disabled>
+                                            		<input class="form-control" name="order_project" value="{{project.project.project_name}}" disabled />
+												 </div>
+											</div>
+                                            <div class="form-group">
+												 <label class="col-sm-2 control-label">服务模块</label>
+												 <div class="col-sm-6">
+                                            		<input class="form-control" name="order_service" value="{{project.service.service_name}}" disabled />
 												 </div>
 											</div>
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">项目环境</label>
 												 <div class="col-sm-6">
-	                               					{% if project.project_env == 'sit' %}
+	                               					{% if project.project_env == 'test' %}
 	                                					<span class="label label-success">测试环境</span>
-	                                				{% elif project.project_env == 'qa' %}
-	                                					<span class="label label-warning">预生产环境</span>
 	                                				{% elif project.project_env == 'uat' %}
+	                                					<span class="label label-warning">灰度环境</span>
+	                                				{% elif project.project_env == 'prod' %}
 	                                					<span class="label label-danger">生产环境</span>
 	                                				{% endif %}
 												 </div>
@@ -43,81 +49,33 @@
 												 <label class="col-sm-2 control-label">更新主题</label>
 												 <div class="col-sm-6">												 	
                                             		<input class="form-control" name="order_subject" required>
-                                            		<p class="help-block">例如：opsmanage优化</p>
+                                            		<p class="help-block">例如：uduoduo优化</p>
 												 </div>
-											</div>	
-					
+											</div>
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">更新内容</label>
 												 <div class="col-sm-6">                                           
                                             		<textarea class="form-control" rows="3" name="order_content" required></textarea>
 												 </div>
-											</div>		
-											{% if project.project_model == 'branch' and project.project_repertory == 'git' %}											
-											<div class="form-group">
-												 <label class="col-sm-2 control-label">分支选择</label>
-												 <div class="col-sm-6">
-												 	<select class="form-control" name="order_branch" id="branch_choice"  onchange="javascript:oBtBranchChoice();" required>
-															{% for ds in bList %}
-															{% if ds.status == 1 %}
-																	<option value="{{ds.name}}" selected="selected" name="order_branch">{{ds.value}}</option>
-															{% else %}
-																	<option value="{{ds.name}}" name="order_branch">{{ds.value}}</option>
-															{% endif %}
-														{% endfor %}							   		
-													</select>
-												 </div>
-											</div>																												
+											</div>
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">版本选择</label>
 												 <div class="col-sm-6">
-												 	<select class="form-control" name="order_comid" id="version_choice"  required>
-														   <option selected="selected" value="" name="order_comid" >请选择版本</option>
+												 	<select class="form-control" name="order_version" id="version_choice"  required>
+														   <option selected="selected" value="" name="order_version" >请选择版本</option>
 															{% for ds in vList %}
-																<option value="{{ds.comid}}" name="order_comid">{{ds.ver}} - {{ds.desc}} - {{ds.user}} </option>
-															{% endfor %}						   		
+																<option value="{{ds}}" name="order_version">{{ds}}</option>
+															{% endfor %}
 													</select>
 												 </div>
-											</div>	
-											{% elif project.project_model == 'tag' and  project.project_repertory == 'git' %}
-											<div class="form-group">
-												 <label class="col-sm-2 control-label">分支/标签</label>
-												 <div class="col-sm-6">
-												   <select class="form-control" name="order_tag"  >
-												   		<option value="" name="order_tag">请选择Tag</option>
-															{% for ds in bList %}
-																<option value="{{ds.name}}" name="order_tag">{{ds.value}}</option>
-															{% endfor %}							   		
-													</select>							 	
-												 </div>
-											</div>	
-											{% else %}
-												<div class="form-group" style="display:none;">
-													 <label class="col-sm-2 control-label">分支</label>
-													 <div class="col-sm-6">													   
-														<input type="hidden" name="order_branch"	value="trunk" disabled/>					 	
-													 </div>
-												</div>													
-												
-												<div class="form-group">
-													 <label class="col-sm-2 control-label">版本选择</label>
-													 <div class="col-sm-6">
-													   <select class="form-control" name="order_comid" >
-													   		<option selected="selected" value="" name="order_comid" >请选择版本</option>
-																{% for ds in vList %}
-																	<option value="{{ds.comid}}" name="order_comid">{{ds.ver}} - {{ds.desc}} - {{ds.user}} </option>
-																{% endfor %}						   		
-														</select>	
-													</div>
-												</div>																								
-											{% endif %}	
+											</div>
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">部署指派<i class="fa fa-info-circle" data-toggle="tooltip"  title="指派授权用户"></i></label>
 												 <div class="col-sm-6">
 												 	 <select class="form-control" name="order_audit"  required>
 														   <option selected="selected" value="" name="order_audit" >请选择授权用户</option>
 															{% for ds in userList %}
-																<option value="{{ds.id}}" name="oorder_audit">{{ds.username}}</option>
+																<option value="{{ds.id}}" name="order_audit">{{ds.username}}</option>
 															{% endfor %}						   		
 													</select>
 												 </div>

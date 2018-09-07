@@ -115,14 +115,14 @@ def apps_upload(request):
                                             playbook_auth_user = request.POST.get('playbook_auth_user',0),
                                             playbook_type = 0,
                                             )
-        except Exception, ex:
+        except Exception as ex:
             logger.error(msg="添加playboo失败: {ex}".format(ex=str(ex)))
             return render(request,'apps/apps_playbook_upload.html',{"user":request.user,"errorInfo":"剧本添加错误：%s" % str(ex)},
                                     ) 
         for sip in sList:
             try:
                 Ansible_Playbook_Number.objects.create(playbook=playbook,playbook_server=sip)
-            except Exception,ex:
+            except Exception as ex:
                 logger.error(msg="添加playboo目标主机失败: {ex}".format(ex=str(ex)))
                 playbook.delete()                    
                 return render(request,'apps/apps_playbook_upload.html',{"user":request.user,"errorInfo":"目标服务器信息添加错误：%s" % str(ex)},
@@ -183,13 +183,13 @@ def apps_online(request):
                                             playbook_auth_user = request.POST.get('playbook_auth_user',0),
                                             playbook_type = 1
                                             )
-        except Exception, ex:
+        except Exception as ex:
             logger.error(msg="添加在线playbook失败: {ex}".format(ex=str(ex)))
             return JsonResponse({'msg':str(ex),"code":500,'data':[]}) 
         for sip in sList:
             try:
                 Ansible_Playbook_Number.objects.create(playbook=playbook,playbook_server=sip)
-            except Exception, ex:
+            except Exception as ex:
                 playbook.delete()                    
                 logger.error(msg="添加在线playbook目标失败: {ex}".format(ex=str(ex)))
         #操作日志异步记录
@@ -269,7 +269,7 @@ def apps_playbook_run(request,pid):
                 if len(playbook_vars) == 0:playbook_vars=dict()
                 else:playbook_vars = json.loads(playbook_vars)
                 playbook_vars['host'] = sList    
-            except Exception,ex:
+            except Exception as ex:
                 DsRedis.OpsAnsiblePlayBookLock.delete(redisKey=playbook.playbook_uuid+'-locked')
                 return JsonResponse({'msg':"{ex}".format(ex=ex),"code":500,'data':[]})
             logId = AnsibleRecord.PlayBook.insert(user=str(request.user),ans_id=playbook.id,ans_name=playbook.playbook_name,
@@ -375,7 +375,7 @@ def apps_playbook_modf(request,pid):
                                     playbook_auth_group = request.POST.get('playbook_auth_group',0),
                                     playbook_auth_user = request.POST.get('playbook_auth_user',0),
                                     )
-        except Exception,ex:
+        except Exception as ex:
             logger.error(msg="修改playbook失败: {ex}".format(ex=str(ex)))
             return render(request,'apps/apps_playbook_modf.html',{"user":request.user,"errorInfo":"剧本添加错误：%s" % str(ex)},
                                     ) 
@@ -387,7 +387,7 @@ def apps_playbook_modf(request,pid):
                     postServerList.append(sip) 
                     if sip not in tagret_server_list:   
                         Ansible_Playbook_Number.objects.create(playbook=playbook,playbook_server=sip)                        
-                except Exception,ex:
+                except Exception as ex:
                     logger.error(msg="修改playbook目标服务器失败: {ex}".format(ex=str(ex)))
                     return render(request,'apps/apps_playbook_modf.html',{"user":request.user,
                                                                         "errorInfo":"目标服务器信息修改错误：%s" % str(ex)},
@@ -445,7 +445,7 @@ def apps_playbook_online_modf(request,pid):
                                     playbook_auth_group = request.POST.get('playbook_auth_group',0),
                                     playbook_auth_user = request.POST.get('playbook_auth_user',0),
                                     )
-        except Exception, ex:
+        except Exception as ex:
             logger.error(msg="修改playbook目标失败: {ex}".format(ex=str(ex)))
             return JsonResponse({'msg':str(ex),"code":500,'data':[]})     
         if sList:
@@ -456,7 +456,7 @@ def apps_playbook_online_modf(request,pid):
                     postServerList.append(sip) 
                     if sip not in tagret_server_list:   
                         Ansible_Playbook_Number.objects.create(playbook=playbook,playbook_server=sip)                        
-                except Exception,e:
+                except Exception as e:
                     return render(request,'apps/apps_playbook_modf.html',{"user":request.user,
                                                                         "errorInfo":"目标服务器信息修改错误：%s" % str(e)},
                                               ) 
@@ -489,7 +489,7 @@ def ansible_log_view(request,model,id):
                 for ds in Ansible_CallBack_Model_Result.objects.filter(logId=logId):
                     result += ds.content
                     result += '\n'
-            except Exception,ex:
+            except Exception as ex:
                 return JsonResponse({'msg':"查看失败","code":500,'data':ex})
         elif model == 'playbook':
             try:
@@ -498,7 +498,7 @@ def ansible_log_view(request,model,id):
                 for ds in Ansible_CallBack_PlayBook_Result.objects.filter(logId=logId):
                     result += ds.content
                     result += '\n'                
-            except Exception,ex:
+            except Exception as ex:
                 return JsonResponse({'msg':"查看失败","code":500,'data':ex})               
         return JsonResponse({'msg':"操作成功","code":200,'data':result})
     
@@ -542,7 +542,7 @@ def apps_script_online(request):
                 DsRedis.OpsAnsibleModel.lpush(redisKey, "[Done] Ansible Done.")
                 try:
                     os.remove(filePath)
-                except Exception, ex:
+                except Exception as ex:
                     logger.warn(msg="删除文件失败: {ex}".format(ex=ex))             
                 return JsonResponse({'msg':"操作成功","code":200,'data':[]})
         if request.POST.get('type') == 'save' and request.POST.get('script_file') and \
@@ -569,7 +569,7 @@ def apps_script_online(request):
                                               script_service=service,
                                               script_type=request.POST.get('server_model')
                                               )
-            except Exception,ex:
+            except Exception as ex:
                 logger.warn(msg="添加ansible脚本失败: {ex}".format(ex=ex))  
                 return JsonResponse({'msg':str(ex),"code":500,'data':[]})
             return JsonResponse({'msg':"保存成功","code":200,'data':[]})
@@ -678,8 +678,8 @@ def apps_script_online_run(request,pid):
                 for server in serverList:
                     try:
                         sList.append(server.server_assets.ip)
-                    except Exception, ex:
-                        logger.warn(msg="获取业务失败: {ex}".format(ex=ex))  
+                    except Exception as ex:
+                        logger.warn(msg="获取业务失败: {ex}".format(ex=ex))
                         continue
                     if server.server_assets.keyfile == 1:resource.append({"ip": server.server_assets.ip, "port": int(server.server_assets.port),"username": server.server_assets.username})
                     else:resource.append({"ip": server.server_assets.ip, "port": int(server.server_assets.port),"username": server.server_assets.username,"password": server.server_assets.passwd})     
@@ -694,7 +694,7 @@ def apps_script_online_run(request,pid):
                                               script_args=request.POST.get('script_args'),
                                               script_type=request.POST.get('server_model')
                                               )
-            except Exception,ex:
+            except Exception as ex:
                 logger.error(msg="保存脚本失败: {ex}".format(ex=str(ex)))
                 return JsonResponse({'msg':str(ex),"code":500,'data':[]})
             return JsonResponse({'msg':"保存成功","code":200,'data':[]})    
@@ -710,7 +710,7 @@ def ansible_inventory(request):
         for ds in Ansible_Inventory.objects.all():
             try:
                 ds.user = User.objects.get(id=ds.user).username
-            except Exception,ex:
+            except Exception as ex:
                 logger.warn(msg="查询用户信息失败: {ex}".format(ex=str(ex)))
             inventoryList.append(ds)
         serverList = AssetsSource().serverList()
@@ -722,7 +722,7 @@ def ansible_inventory(request):
             Ansible_Inventory.objects.create(name=request.POST.get('inventory_name'),
                                              desc=request.POST.get('inventory_desc'),
                                              user=request.user.id)
-        except Exception,ex:
+        except Exception as ex:
             logger.error(msg="添加动态资产组失败: {ex}".format(ex=str(ex)))
             return JsonResponse({'msg':"添加动态资产组失败: {ex}".format(ex=ex),"code":500,'data':[]})    
         return JsonResponse({'msg':"添加成功","code":200,'data':[]}) 
@@ -733,7 +733,7 @@ def ansible_inventory_modf(request,id):
     if request.method == "GET":
         try:
             inventory = Ansible_Inventory.objects.get(id=id)
-        except Exception,ex:
+        except Exception as ex:
             logger.warn(msg="获取资产组失败: {ex}".format(ex=str(ex)))
         serverList = AssetsSource().serverList()               
         return  render(request,'apps/apps_inventory_modf.html',{"user":request.user,"serverList":serverList,"inventory":inventory})
@@ -743,7 +743,7 @@ def ansible_inventory_modf(request,id):
             Ansible_Inventory.objects.create(name=request.POST.get('inventory_name'),
                                              desc=request.POST.get('inventory_desc'),
                                              user=request.user.id)
-        except Exception,ex:
+        except Exception as ex:
             logger.error(msg="添加动态资产组失败: {ex}".format(ex=str(ex)))
             return JsonResponse({'msg':"添加动态资产组失败: {ex}".format(ex=ex),"code":500,'data':[]})    
         return JsonResponse({'msg':"添加成功","code":200,'data':[]}) 
@@ -756,24 +756,24 @@ def ansible_inventory_groups(request,id):
     if request.method == "POST":
         try:
             inventory = Ansible_Inventory.objects.get(id=id)
-        except Exception,ex:  
+        except Exception as ex:
             return JsonResponse({'msg':"获取动态资产组失败: {ex}".format(ex=ex),"code":500,'data':[]})
         try:
             ext_vars = eval(request.POST.get('ext_vars'))
-        except Exception,ex:
+        except Exception as ex:
             ext_vars = None
             logger.error(msg="添加资产组，转化外部变量失败: {ex}".format(ex=str(ex)))
         try:
             inventoryGroups = Ansible_Inventory_Groups.objects.create(inventory=inventory,
                                              group_name=request.POST.get('group_name'),
                                              ext_vars=ext_vars)
-        except Exception,ex:
+        except Exception as ex:
             logger.error(msg="添加资产组失败: {ex}".format(ex=str(ex)))
             return JsonResponse({'msg':"添加资产组失败: {ex}".format(ex=ex),"code":500,'data':[]})   
         try:
             for aid in request.POST.get('server_list').split(','):
                 Ansible_Inventory_Groups_Server.objects.create(groups=inventoryGroups,server=aid)
-        except Exception,ex:
+        except Exception as ex:
             inventoryGroups.delete()
             logger.error(msg="添加资产组成员失败: {ex}".format(ex=str(ex)))
             return JsonResponse({'msg':"添加资产组成员失败: {ex}".format(ex=ex),"code":500,'data':[]})    
@@ -785,7 +785,7 @@ def ansible_inventory_groups(request,id):
 def ansible_inventory_groups_server(request,id):
     try:
         groups = Ansible_Inventory_Groups.objects.get(id=id)
-    except Exception,ex:
+    except Exception as ex:
         logger.error(msg="查询资产组失败: {ex}".format(ex=str(ex)))
         return JsonResponse({'msg':"查询资产组失败: {ex}".format(ex=ex),"code":500,'data':[]})    
     if request.method == "GET": 
@@ -802,7 +802,7 @@ def ansible_inventory_groups_server(request,id):
         try:
             if request.POST.get('ext_vars',None):ext_vars = eval(request.POST.get('ext_vars',None))
             else:ext_vars = None
-        except Exception,ex:
+        except Exception as ex:
             logger.error(msg="修改资产组失败，外部变量格式错误: {ex}".format(ex=str(ex)))
             return JsonResponse({'msg':"修改资产组失败，外部变量格式错误: {ex}".format(ex=str(ex)),"code":500,'data':[]}) 
         numberList = Ansible_Inventory_Groups_Server.objects.filter(groups=groups)
@@ -813,7 +813,7 @@ def ansible_inventory_groups_server(request,id):
                 postServerList.append(int(server)) 
                 if int(server) not in tagret_server_list:
                     Ansible_Inventory_Groups_Server.objects.create(groups=groups,server=server)                        
-            except Exception,ex:
+            except Exception as ex:
                 logger.error(msg="修改资产组成员失败: {ex}".format(ex=str(ex)))
                 return JsonResponse({'msg':"修改资产组成员失败: {ex}".format(ex=ex),"code":500,'data':[]})
         #清除目标主机 - 
@@ -824,10 +824,10 @@ def ansible_inventory_groups_server(request,id):
             groups.group_name = request.POST.get('group_name')
             groups.ext_vars = ext_vars
             groups.save()
-        except Exception,ex:
+        except Exception as ex:
             logger.error(msg="修改资产组成员失败: {ex}".format(ex=str(ex)))
             return JsonResponse({'msg':"修改资产组成员失败: {ex}".format(ex=ex),"code":500,'data':[]})
         return JsonResponse({'msg':"修改成功","code":200,'data':[]}) 
     elif request.method == "DELETE" and request.user.has_perm('OpsManage.can_delete_ansible_inventory'):
         groups.delete()
-        return JsonResponse({'msg':"删除成功","code":200,'data':[]})      
+        return JsonResponse({'msg':"删除成功","code":200,'data':[]})

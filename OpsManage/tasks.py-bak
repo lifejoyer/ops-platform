@@ -36,8 +36,8 @@ def recordAssets(user,content,type,id=None):
                                       assets_type = type
                                       )
         return logs.id
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False
 
 @task  
@@ -53,7 +53,7 @@ def recordAnsibleModel(user,ans_model,ans_server,uuid,ans_args=None):
                                       ans_uuid = uuid
                                       )
             return True
-    except Exception,e:
+    except Exception as e:
         return False
     
 @task  
@@ -70,8 +70,8 @@ def recordAnsiblePlaybook(user,ans_id,ans_name,ans_content,uuid=None,ans_server=
                                       ans_uuid = uuid
                                       )
         return True
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False
     
 @task  
@@ -87,8 +87,8 @@ def recordCron(cron_user,cron_id,cron_name,cron_content,cron_server=None):
                                       cron_server = cron_server
                                       )
         return True
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False
 
 @task  
@@ -104,8 +104,8 @@ def recordProject(project_user,project_id,project_name,project_content,project_b
                                       project_branch = project_branch
                                       )
         return True
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False
     
 @task  
@@ -121,8 +121,8 @@ def recordSQL(exe_user,exe_db,exe_sql,exec_status,exe_result=None):
                                       exe_result = exe_result
                                       )
         return True
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False    
     
     
@@ -169,7 +169,7 @@ def sendSqlEmail(order_id,mask):
         content += "撤销原因：<strong>{order_cancel}</strong>".format(order_cancel=order.order_cancel)
     try:
         to_user = User.objects.get(id=order.order_executor).email
-    except Exception, ex:
+    except Exception as ex:
         return ex
     if config.subject:subject = "{sub} {oub} {mask}".format(sub=config.subject,oub=order.order_desc,mask=mask)
     else:subject = "{oub} {mask}".format(mask=mask,oub=order.order_subject)
@@ -192,27 +192,27 @@ def AnsibleScripts(**kw):
             if kw.has_key('hosts'):
                 try:
                     sList = list(kw.get('hosts'))
-                except Exception, ex:
+                except Exception as ex:
                     return ex
             else:
                 try:
                     sList = list(script.script_server)
-                except Exception, ex:
+                except Exception as ex:
                     return ex           
             if kw.has_key('logs'):
                 logId = AnsibleRecord.Model.insert(user='celery',ans_model='script',ans_server=','.join(sList),ans_args=filePath)
             for sip in sList:
                 try:
                     server_assets = Server_Assets.objects.get(ip=sip)
-                except Exception, ex:
+                except Exception as ex:
                     continue
                 if server_assets.keyfile == 1:resource.append({"hostname": server_assets.ip, "port": int(server_assets.port)})
                 else:resource.append({"hostname": server_assets.ip, "port": int(server_assets.port),"username": server_assets.username,"password": server_assets.passwd})         
             ANS = ANSRunner(resource,redisKey=None,logId=logId)
             ANS.run_model(host_list=sList,module_name='script',module_args=filePath)
             return ANS.get_model_result()
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False
     
     
@@ -227,13 +227,13 @@ def AnsiblePlayBook(**kw):
             if kw.has_key('hosts'):
                 try:
                     sList = list(kw.get('hosts'))
-                except Exception, ex:
+                except Exception as ex:
                     return ex
             else:
                 try:
                     numberList = Ansible_Playbook_Number.objects.filter(playbook=playbook)
                     if numberList:sList = [ s.playbook_server for s in numberList ]
-                except Exception, ex:
+                except Exception as ex:
                     return ex           
             if kw.has_key('logs'):
                 logId = AnsibleRecord.PlayBook.insert(user='celery',ans_id=playbook.id,ans_name=playbook.playbook_name,
@@ -241,13 +241,13 @@ def AnsiblePlayBook(**kw):
             for sip in sList:
                 try:
                     server_assets = Server_Assets.objects.get(ip=sip)
-                except Exception, ex:
+                except Exception as ex:
                     continue
                 if server_assets.keyfile == 1:resource.append({"hostname": server_assets.ip, "port": int(server_assets.port)})
                 else:resource.append({"hostname": server_assets.ip, "port": int(server_assets.port),"username": server_assets.username,"password": server_assets.passwd})         
             ANS = ANSRunner(resource,redisKey=None,logId=logId)
             ANS.run_playbook(host_list=sList, playbook_path=filePath)
             return ANS.get_playbook_result()
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False
