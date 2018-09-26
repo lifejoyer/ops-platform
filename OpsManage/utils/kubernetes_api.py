@@ -48,7 +48,7 @@ class K8sTools(object):
         return res
 
     def create_secret(self, name):
-        data = {"auths":{"registry-vpc.cn-shanghai.aliyuncs.com":{"username":"jinhuhang","password":"qJrN%h1sn58p","email":"jinhuhang@aliyun.com","auth":"amluaHVoYW5nOnFKck4laDFzbjU4cA=="}}}
+        data = {"auths":{"registry-vpc.cn-shanghai.aliyuncs.com":{"email":"test@163.com","auth":"authstring"}}}
         o=K8sSecret(config=self.k8s_config, name=name)
         o.create_image_pull_secret(name=name,
                                    config=self.k8s_config,
