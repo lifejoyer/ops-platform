@@ -108,7 +108,61 @@
                         </a>
                     </div>
                 </div>
-     </div>     
+     </div>
+     <div class="row">
+          <div class="col-lg-12">
+              <div class="panel panel-default">
+                  <div class="panel-heading">
+                      <i class="fa fa-keyboard-o  fa-fw"></i> 项目查询
+                  </div>
+                  <div class="panel-body">
+				      <div class="col-xs-6 col-sm-3">
+							<div class="form-group">
+								<label class="col-sm-3 control-label">项目环境:</label>
+								<div class="col-sm-8">
+									<select class="form-control"  id="selProjectEnv"  >
+										<option selected="selected" value="">请选择项目环境</option>
+										<option value="test" name="project_env">测试环境</option>
+										<option value="test2" name="project_env">测试环境2</option>
+										<option value="uat" name="project_env">灰度环境</option>
+										<option value="prod" name="project_env">生产环境</option>
+									</select>
+								</div>
+							</div>
+				      </div>
+				      <div class="col-xs-6 col-sm-3">
+							<div class="form-group">
+								<label class="col-sm-3 control-label">产品线:</label>
+								<div class="col-sm-8">
+									 <select class="form-control" id="selProject" >
+									 	<option selected="selected" value="">请选择产品线</option>
+									 	{% for p in baseAssets.project %}
+									 		<option value="{{p.id}}" name="project">{{p.project_name}}</option>
+									 	{% endfor %}
+									</select>
+								</div>
+							</div>
+				      </div>
+				      <div class="col-xs-6 col-sm-3">
+							<div class="form-group">
+								<label class="col-sm-3 control-label">服务模块:</label>
+								<div class="col-sm-8">
+									 <select class="form-control" id="selService" >
+									 	<option selected="selected" value="">请选择一个服务</option>
+									 	{% for s in baseAssets.service %}
+									 		<option value="{{s.id}}" name="service">{{s.service_name}}</option>
+									 	{% endfor %}
+									</select>
+								</div>
+							</div>
+				      </div>
+                  </div>
+                  <div class="panel-footer">
+                  <div id="divSelectedType"></div>
+                  </div>
+              </div>
+          </div>
+     </div>
     <div class="row">
          <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -145,6 +199,8 @@
                                 					<span class="label label-warning">灰度环境</span>
                                 				{% elif ds.project_env == 'prod' %}
                                 					<span class="label label-danger">生产环境</span>
+                                                {% elif ds.project_env == 'test2' %}
+                                                    <span class="label label-success">测试环境2</span>
                                 				{% endif %}
                                 			</td>
                                 			<td>
@@ -251,12 +307,12 @@
 	                "data":           null,
 	                "defaultContent": ''
 	            },
-	            { "data": "id" },
+	            { "data": "ID" },
 	            { "data": "产品线" },
 	            { "data": "服务模块" },
 	            { "data": "项目环境"},
 	            { "data": "服务端口" },
-	            { "data": "仓库地址" },
+	            { "data": "仓库分支" },
 	            { "data": "激活状态" },
 	            { "data": "操作" }       
 	        ],
@@ -409,5 +465,121 @@
 		});								   
    }	
 	
+</script>
+
+<script type="text/javascript">
+        var curpage = 1;
+        $(document).ready(function () {
+
+            //服务模块
+            $('#selService').change(function () {
+                if ($('#selService').val() != "") {
+                    $("#hdnService").val($('#selService').val());
+                    var span = "<span class='label label-success' id='spanService'>" + $("#selService").find("option:selected").text()
+                    + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='service' type='hidden' value='"
+                    + $('#selService').val() + "' /></span> &nbsp;";
+                    if ($("#spanService").length == 0) {
+                        $('#divSelectedType').append(span);
+                    }
+                    else {
+                        $("#spanService").html($("#selService").find("option:selected").text()
+                         + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='service' type='hidden' value='"
+                         + $('#selService').val() + "' /></span> &nbsp;");
+                    }
+                    changepage(1);
+                }
+            })
+
+			//项目环境
+            $('#selProjectEnv').change(function () {
+                if ($('#selProjectEnv').val() != "") {
+                    $("#hdnProjectEnv").val($('#selProjectEnv').val());
+                    var span = "<span class='label label-success' id='spanProjectEnv'>" + $("#selProjectEnv").find("option:selected").text()
+                    + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='project_env' type='hidden' value='"
+                    + $('#selProjectEnv').val() + "' /></span> &nbsp;";
+                    if ($("#spanProjectEnv").length == 0) {
+                        $('#divSelectedType').append(span);
+                    }
+                    else {
+                        $("#spanProjectEnv").html($("#selProjectEnv").find("option:selected").text()
+                         + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='project_env' type='hidden' value='"
+                         + $('#selProjectEnv').val() + "' /></span> &nbsp;");
+                    }
+                    changepage(1);
+                }
+            })
+
+			//所属项目
+            $('#selProject').change(function () {
+                if ($('#selProject').val() != "") {
+                    $("#hdnProject").val($('#selProject').val());
+                    var span = "<span class='label label-success' id='spanSelinux'>" + $("#selProject").find("option:selected").text()
+                    + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='project' type='hidden' value='"
+                    + $('#selProject').val() + "' /></span> &nbsp;";
+                    if ($("#spanSelinux").length == 0) {
+                        $('#divSelectedType').append(span);
+                    }
+                    else {
+                        $("#spanSelinux").html($("#selProject").find("option:selected").text()
+                         + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='project' type='hidden' value='"
+                         + $('#selProject').val() + "' /></span> &nbsp;");
+                    }
+                    changepage(1);
+                }
+            })
+
+        })
+
+        function search_go() {
+            var parameter = {};
+            $("input[type='hidden']").each(function () {
+                var key = $(this).prop('name');
+                var value = $(this).val();
+                if (key != "csrfmiddlewaretoken"){
+                	parameter[key] = value;
+                }
+            })
+
+            var count = 0;
+            for (var i in parameter) {
+                count += i;
+                break;
+            }
+            if (count == 0) {
+                return false;
+            }
+
+            $.post('/deploy_search/', parameter, function (result) {
+                if (result["data"].length > 0) {
+/*                 	document.getElementById("div-search-result").style.display = ""; */
+					var table = $('#deployTableList').dataTable();
+					oSettings = table.fnSettings();
+					table.fnClearTable(this);
+					for (var i=0; i<result["data"].length; i++)
+					{
+					  table.oApi._fnAddData(oSettings, result["data"][i]);
+					}
+					oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
+					table.fnDraw();
+                }
+                else{
+                	//没有数据就清空
+                	var table = $('#deployTableList').dataTable();
+                	table.fnClearTable(this);
+                }
+            })
+        }
+
+        function changepage(pageindex) {
+            curpage = pageindex;
+            search_go();
+        }
+
+        function removeself(obj) {
+            $(obj).parent().remove();
+            changepage(1);
+        }
+
+
 </script>
 {% endblock %}

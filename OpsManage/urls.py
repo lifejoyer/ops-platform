@@ -64,6 +64,7 @@ urlpatterns = [
     url(r'^deploy_order/status/(?P<pid>[0-9]+)/$',deploy.deploy_order_status),
     url(r'^deploy_order/rollback/(?P<pid>[0-9]+)/$',deploy.deploy_order_rollback),
     url(r'^deploy_manage/(?P<pid>[0-9]+)/$',deploy.deploy_manage),
+    url(r'^deploy_search/',deploy.deploy_search),
     url(r'^apps/$',ansible.apps_list),
     url(r'^apps/model/$',ansible.apps_model),
     url(r'^apps/script/online/$',ansible.apps_script_online),

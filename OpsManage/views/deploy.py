@@ -23,6 +23,7 @@ from django.contrib.auth.decorators import permission_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from OpsManage.utils.logger import logger
 from OpsManage import settings
+from OpsManage.views import assets
 from dao.assets import AssetsSource
 import json
 import time
@@ -132,13 +133,112 @@ def deploy_list(request):
     for ds in deployList:
         ds.number = Project_Number.objects.filter(project=ds)
     uatProject = Project_Config.objects.filter(project_env="uat").count()
-    testProject = Project_Config.objects.filter(project_env="test").count()
+    testProject = Project_Config.objects.filter(project_env__startswith = "test").count()
     prodProject = Project_Config.objects.filter(project_env="prod").count()
     return render(request,'deploy/deploy_list.html',{"user":request.user,"totalProject":deployList.count(),
-                                                         "deployList":deployList,"uatProject":uatProject,
+                                                         "deployList":deployList,"uatProject":uatProject,"baseAssets": assets.getBaseAssets(),
                                                          "testProject":testProject,"prodProject":prodProject},
-                              )  
-    
+                              )
+
+
+@login_required()
+@permission_required('OpsManage.can_read_project_config', login_url='/noperm/')
+def deploy_search(request):
+    ProjectFieldsList = [n.name for n in Project_Config._meta.fields]
+    if request.method == "POST":
+        ProjectIntersection = list(set(request.POST.keys()).intersection(set(ProjectFieldsList)))
+        DeployList = []
+        data = dict()
+        # 格式化查询条件
+        for (k, v) in request.POST.items():
+            if v is not None and v != u'':
+                data[k] = v
+
+        if len(ProjectIntersection) > 0:
+            assetsData = dict()
+            for a in ProjectIntersection:
+                for k in data.keys():
+                    if k.find(a) != -1:
+                        assetsData[k] = data[k]
+                        data.pop(k)
+            DeployList.extend(Project_Config.objects.filter(**assetsData))
+
+        # baseAssets = getBaseAssets()
+        dataList = []
+        for a in DeployList:
+            project = a.project.project_name
+            service = a.service.service_name
+
+            if a.project_env == 'prod':
+                status = '''<button  type="button" class="btn active btn-info">请走工单</button>'''
+            else:
+                if a.project_status == 0:
+                    status = '''<button type="button" class="btn btn-outline btn-warning" onclick="initProject(this,'{service}',{id})">未初始化</button>'''.format(service=a.service.service_name,id=a.id)
+                else:
+                    status = '''<button type="button" class="btn btn-outline btn-success">已初始化</button>'''
+
+            if a.project_env == 'test':
+                env = '''<span class="label label-success">测试环境</span>'''
+            elif a.project_env == 'test2':
+                env = '''<span class="label label-success">测试环境2</span>'''
+            elif a.project_env == 'uat':
+                env = '''<span class="label label-warning">灰度环境</span>'''
+            elif a.project_env == 'prod':
+                env = '''<span class="label label-danger">生产环境</span>'''
+            opt = ''' 
+                     <a href="/deploy_mod/{id}"><button  type="button" title="修改资料" class="btn btn-default"><abbr title="修改资料"><i class="glyphicon glyphicon-edit"></i></abbr></button></a>
+                 '''.format(id=a.id)
+            if a.project_env == 'prod':
+                opt += '''
+                       <a href="/order/deploy/apply/{id}"><button  type="button" class="btn btn-default"><abbr title="部署申请"><i class="fa fa-play-circle-o"></i></abbr></button></a>
+                    '''.format(id=a.id)
+            else:
+                if a.project_status == 1:
+                    opt += '''
+                       <a href="/deploy_run/{id}"  title="部署"><button  type="button" class="btn btn-default"><abbr title="部署"><i class="fa fa-play-circle-o"></i></abbr></button></a>
+                       <a href="/deploy_manage/{id}" title="版本控制"><button  type="button" class="btn btn-default"><abbr title="版本控制"><i class="fa fa-gear"></i></abbr></button></a>
+                    '''.format(id=a.id)
+                else:
+                    opt += '''
+                        <button  type="button" class="btn btn-default" title="提示"
+							data-container="body" data-toggle="popover" data-placement="top"
+							data-content="请先初始化仓库" data-html="true"><i class="fa fa-play-circle-o"></i></button>
+						<button  type="button" class="btn btn-default" title="提示"
+							data-container="body" data-toggle="popover" data-placement="top"
+							data-content="请先初始化仓库" data-html="true"><i class="fa fa-gear"></i></button>
+                    '''
+                opt += '''
+                	<div class="btn-group-vertical">
+						<div class="btn-group-vertical">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                <abbr title="分支控制"><i class="fa fa-github"></i></abbr>
+								<span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu">
+							    <li><a href="javascript:" onclick="projcectVersion(this,'branch',{id},'create')">创建Branch</a></li>
+							    <li role="presentation" class="divider"></li>
+								<li><a href="javascript:" onclick="projcectVersion(this,'branch',{id},'delete')">删除Branch</a></li>
+								<li><a href="javascript:" onclick="projcectVersion(this,'tag',{id},'delete')">删除Tag</a></li>
+							</ul>
+						</div>
+					</div>
+                '''.format(id=a.id)
+            opt += '''
+                <button  type="button" class="btn btn-default" onclick="deleteProject(this,{id})"><abbr title="删除"><i class="glyphicon glyphicon-trash"></i></abbr></button>
+            '''.format(id=a.id)
+            dataList.append(
+                {'ID': str(a.id),
+                 '产品线': project,
+                 '服务模块': service,
+                 '项目环境': env,
+                 '服务端口': str(a.project_service_port),
+                 '仓库分支': str(a.project_branch),
+                 '激活状态': status,
+                 '操作': opt}
+            )
+            #"详情": '',
+        return JsonResponse({'msg': "数据查询成功", "code": 200, 'data': dataList, 'count': 0})
+
 @login_required()
 @permission_required('OpsManage.can_change_project_config',login_url='/noperm/')
 def deploy_init(request,pid):      
@@ -220,6 +320,7 @@ def deploy_run(request,pid):
                 for v in vTag:
                     c=base.version_compare(v, deploy[0]['image_version'])
                     if c: vList.append(c)
+                if deploy[0]['image_version'] in vList: vList.remove(deploy[0]['image_version'])
             else: vList=vTag
             if len(vList)>1: vList=list(set(vList))
         return render(request,'deploy/deploy_run.html',{"user":request.user,
@@ -262,9 +363,8 @@ def deploy_run(request,pid):
             build_type = str(project.service.service_type)
             mount_path = str(project.project_mount_path) if project.project_mount_path.strip() else None
             base_image = settings.DOCKER_IMAGE["jdk"] if build_type == "jar" else settings.DOCKER_IMAGE["tomcat"]
-            registry = settings.DOCKER_REGISTRY["test"] if project_env == "test" else settings.DOCKER_REGISTRY["prod"]
-            service_ip = settings.PROJECT_SERVICE_IP["test"] if project_env == "test" else settings.PROJECT_SERVICE_IP[
-                "prod"]
+            registry = settings.DOCKER_REGISTRY["test"] if "test" in project_env else settings.DOCKER_REGISTRY["prod"]
+            service_ip = settings.PROJECT_SERVICE_IP["test"] if "test" in project_env else settings.PROJECT_SERVICE_IP["prod"]
             image = str(registry + '/' + project_name + "-" + service_name + ":" + project_version)
             project_env_var = str(project.project_env_var.strip())
 
