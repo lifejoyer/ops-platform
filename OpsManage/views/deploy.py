@@ -27,6 +27,7 @@ from OpsManage.views import assets
 from dao.assets import AssetsSource
 import json
 import time
+import math
 
 @login_required()
 @permission_required('OpsManage.can_add_project_config',login_url='/noperm/')
@@ -632,13 +633,25 @@ def deploy_log(request,page):
 @login_required(login_url='/login')
 def deploy_record(request,page):
     if request.method == "GET":
-        allProjectList = Deploy_Record.objects.all().order_by('-id')[0:1000]
-        paginator = Paginator(allProjectList, 1000)
+        pageNum=10      # 每页行数
+        displayPageNum=5   # 显示页数
+        allProjectList = Deploy_Record.objects.all().order_by('-id')
+        paginator = Paginator(allProjectList, pageNum)
         try:
             projectList = paginator.page(page)
         except PageNotAnInteger:
             projectList = paginator.page(1)
         except EmptyPage:
             projectList = paginator.page(paginator.num_pages)
-        return render(request,'deploy/deploy_record.html',{"user":request.user,"projectList":projectList},
+        try:
+            page = int(page)
+            if page <= 1: page_range = range(1, displayPageNum + 1)
+            elif paginator.num_pages <= displayPageNum:
+                page_range = range(1, paginator.num_pages)
+            elif paginator.num_pages-page <= displayPageNum:
+                page_range = range(paginator.num_pages - displayPageNum, paginator.num_pages+1)
+            else: page_range = range(page, page+displayPageNum)
+        except:
+            page_range = range(1, displayPageNum+1)
+        return render(request,'deploy/deploy_record.html',{"user":request.user,"projectList":projectList,"page_range":page_range},
                                   )
