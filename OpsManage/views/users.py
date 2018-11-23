@@ -31,6 +31,7 @@ def register(request):
                     user = User()
                     user.username = request.POST.get('username')
                     user.email = request.POST.get('email')
+                    user.first_name = request.POST.get('first_name')
                     user.is_staff = 0
                     user.is_active = 0
                     user.is_superuser = 0                        
@@ -118,7 +119,8 @@ def user(request,uid):
             User.objects.filter(id=uid).update(
                                             is_active = request.POST.get('is_active'),
                                             is_superuser = int(request.POST.get('is_superuser')),
-                                            email = request.POST.get('email'), 
+                                            email = request.POST.get('email'),
+                                            first_name = request.POST.get('first_name'),
                                             username = request.POST.get('username')
                                             )          
             #如果权限key不存在就单做清除权限

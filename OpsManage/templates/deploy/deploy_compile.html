@@ -28,70 +28,38 @@
 											<div class="form-group">
 												 <label class="col-sm-4 control-label">项目名称</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" value="{{project.project.project_name}}"  class="input-xlarge" disabled/>
-                                                    <input type="hidden" class="form-control" name="project_id" value="{{project.project_id}}" disabled/>
-												 	<input type="hidden" class="form-control" name="project_uuid" value="{{project.project_uuid}}" disabled/>
-                                                    <input type="hidden" class="form-control" name="project_model" value="online" disabled />
+                                                     <select class="form-control" name="project_name"  id="project_choice">
+                                                         <option name="project_id" value="">请选择项目</option>
+                                                         {% for ds in project %}
+                                                             <option value="{{ ds.id }}" name="project_id">{{ ds.project_name }}</option>
+                                                         {% endfor %}
+                                                     </select>
                                                     <input type="hidden" class="form-control" name="project_deploy_user" value="{{ user.first_name }}" disabled />
 												 </div>
 											</div>
 											<div class="form-group">
 												 <label class="col-sm-4 control-label">服务模块</label>
 												 <div class="col-sm-6">
-                                                    <input type="text" class="form-control" name="service_id" value="{{project.service.service_name}}"  class="input-xlarge" disabled/>
+                                                    <input type="text" class="form-control" name="service_id" value=""  class="input-xlarge" disabled/>
 												 </div>
 											</div>
 											<div class="form-group">
-												 <label class="col-sm-4 control-label">发布环境</label>
-												 <div class="col-sm-6">
-                                                     {% if project.project_env == '1' %}
-                                                         <input type="text" class="form-control" value="测试环境" style="color: green" disabled />
-                                                     {% elif project.project_env == 'uat' %}
-                                                         <input type="text" class="form-control" value="灰度环境" style="color: orange" disabled />
-                                                     {% elif project.project_env == 'prod' %}
-                                                         <input type="text" class="form-control"value="生产环境"  style="color: red" disabled />
-                                                     {% endif %}
-{#                                                    <input type="text" class="form-control" name="project_env" id="project_env" value="{{project.project_env}}"  class="input-xlarge" disabled/>#}
-												 </div>
-											</div>
-											<div class="form-group">
-												 <label class="col-sm-4 control-label">代码分支</label>
-												 <div class="col-sm-6">
-                                                    <input type="text" class="form-control" name="project_branch" value="{{project.project_branch}}"  class="input-xlarge" disabled/>
-												 </div>
-											</div>
-                                            <div class="form-group">
-                                                <label class="col-sm-4 control-label">业务版本</label>
-                                                <div class="col-sm-6">
-                                                    {% if project.project_env == 'prod' %}
-                                                        <select class="form-control" name="project_version"  id="version_choice">
-												   			<option name="project_version" value="">选择版本</option>
-															{% for ds in vList %}
-                                                                <option value="{{ds}}" name="project_version">{{ds}}</option>
-															{% endfor %}
-													    </select>
-                                                    {% elif project.project_env == 'uat' %}
-                                                        <input type="text" class="form-control" name="project_version" value=""  class="input-xlarge" />
-                                                    {% else %}
-                                                        <input type="text" class="form-control" name="project_version" value="随机生成"  class="input-xlarge" disabled/>
-                                                    {% endif %}
+                                                <label class="col-sm-4 control-label">发布环境</label>
+											    <div class="col-sm-6">
+                                                    <select class="form-control" name="project_env"  id="project_env_choice">
+                                                        <option name="project_env" value="">请选择环境</option>
+                                                        <option name="project_env" value="test">测试环境</option>
+                                                        <option name="project_env" value="test2">测试环境2</option>
+                                                        <option name="project_env" value="uat">灰度环境</option>
+                                                    </select>
                                                 </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="col-sm-6">
-                                                    {% if project.project_env == 'uat' or project.project_env == 'prod' %}
-                                                        {% for ds in vCommit %}
-                                                        <input type="hidden" class="form-control" name="project_commit_id" value="{{ ds.comid }}"  class="input-xlarge" />
-                                                        {% endfor %}
-                                                    {% endif %}
-                                                </div>
-                                            </div>
+											</div>
 											</fieldset>
 											<legend></legend>
 											<div class="form-group">
 											<label class="col-sm-3 control-label"></label>
-											<button type="button"  onclick="repealFromVaule(this)" class="btn btn-default" >撤销部署</button>
-									 		<button type="button"  class="btn btn-default" onclick="runDeploy(this)" >确认部署</button>
+											<button type="button"  onclick="repealFromVaule(this)" class="btn btn-default" >撤销编译</button>
+									 		<button type="button"  class="btn btn-default" onclick="runDeploy(this)" >开始编译</button>
 									 		</div>
 									 		
 										</form>                                        

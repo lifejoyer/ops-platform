@@ -4,9 +4,6 @@ from __future__ import unicode_literals
 
 from django.db import models
 # from OpsManage.models import Project_Config,DataBase_Server_Config
-import sys
-reload(sys)
-sys.setdefaultencoding("utf-8")
 
 
 class Order_System(models.Model):
@@ -60,6 +57,7 @@ class Project_Order(models.Model):
     order_content =  models.TextField(verbose_name='工单申请内容') 
     order_branch =  models.CharField(max_length=50,blank=True,null=True,verbose_name='分支版本')
     order_comid =  models.CharField(max_length=100,blank=True,null=True,verbose_name='版本id')
+    order_version = models.CharField(max_length=50,blank=True,null=True,verbose_name='发行版本号')
     order_tag =  models.CharField(max_length=50,blank=True,null=True,verbose_name='标签')
     '''自定义权限'''
     class Meta:

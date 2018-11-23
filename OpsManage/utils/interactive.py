@@ -2,17 +2,18 @@
 # _#_ coding:utf-8 _*_ 
 import socket, sys, time, codecs, ast, errno
 from paramiko.py3compat import u
-from django.utils.encoding import smart_unicode
+# from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_text
 import os
 
 try:
     has_termios = True
-except ImportError:
+except ImportError as ex:
     has_termios = False
     raise Exception('This project does\'t support windows system!')
 try:
     import simplejson as json
-except ImportError:
+except ImportError as ex:
     import json
 import redis
 import threading
@@ -54,7 +55,7 @@ def posix_shell(chan,channel,width=90,height=40):
             try:               
                 x = u(chan.recv(1024))
                 if len(x) == 0:
-                    channel_layer.send(channel, {'text': json.dumps(['disconnect',smart_unicode('\r\n*** EOF\r\n')]) })
+                    channel_layer.send(channel, {'text': json.dumps(['disconnect',smart_text('\r\n*** EOF\r\n')]) })
                     break
                 now = time.time()
                 delay = now - last_write_time['last_activity_time']
@@ -63,11 +64,11 @@ def posix_shell(chan,channel,width=90,height=40):
                     chan.close()
                 else:
                     stdout.append([delay,codecs.getincrementaldecoder('UTF-8')('replace').decode(x)]) 
-                channel_layer.send(channel, {'text': json.dumps(['stdout',smart_unicode(x)]) })
+                channel_layer.send(channel, {'text': json.dumps(['stdout',smart_text(x)]) })
             except socket.timeout:
                 pass
-            except Exception,e:
-                channel_layer.send(channel, {'text': json.dumps(['stdout','A bug find,You can report it to me' + smart_unicode(e)]) })
+            except Exception as e:
+                channel_layer.send(channel, {'text': json.dumps(['stdout','A bug find,You can report it to me' + smart_text(e)]) })
 
     finally:
         pass
@@ -101,7 +102,7 @@ class SshTerminalThread(threading.Thread):
         while (not self._stop_event.is_set()):
             text = self.queue.get_message()
             if text:          
-                if isinstance(text['data'],(str,basestring,unicode)):
+                if isinstance(text['data'],str):
                     try:
                         data = ast.literal_eval(text['data'])
                     except Exception:
@@ -117,7 +118,7 @@ class SshTerminalThread(threading.Thread):
                         break
                     elif data[0] in ['stdin','stdout']:
                         self.chan.send(data[1])
-                elif isinstance(data,(int,long)):
+                elif isinstance(data,int):
                     if data == 1 and first_flag:first_flag = False
                     else:self.chan.send(str(data))
                 else:

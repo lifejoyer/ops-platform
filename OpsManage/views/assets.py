@@ -48,9 +48,13 @@ def getBaseAssets():
         jenkinsList = Jenkins_Assets.objects.all()
     except:
         jenkinsList = []
+    try:
+        envList = RunEnv_Assets.objects.all()
+    except:
+        envList= []
     return {"group":groupList,"service":serviceList,"zone":zoneList,
             "line":lineList,"raid":raidList,'project':projectList,
-            "k8s":k8sList,"jenkins":jenkinsList}
+            "k8s":k8sList,"jenkins":jenkinsList,"environment":envList}
 
 @login_required(login_url='/login')
 @permission_required('OpsManage.can_read_assets',login_url='/noperm/') 

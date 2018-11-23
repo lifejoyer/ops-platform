@@ -57,13 +57,23 @@
 								</div>
 								<div class="form-group">
 									<label><font color='red'>* </font>项目环境</label> 
-									<select class="form-control" id="project_env" name="project_env" required>
+									<select class="form-control" id="project_env" name="project_env" onchange="javascript:oBtEnvType();" required>
 										<option value="">请选择项目环境</option>
 										<option value="test" name="project_env">测试环境</option>
 										<option value="uat" name="project_env">灰度环境</option>
 										<option value="prod" name="project_env">生产环境</option>
+                                        <option value="test2" name="project_env">测试环境2</option>
+                                        <option value="test3" name="project_env">测试环境3</option>
 									</select>
 								</div>
+                                <div class="form-group">
+									<label><font color='red'>* </font>部署类别</label>
+									<select class="form-control" id="project_category" name="project_category" onchange="javascript:oBtCategoryType();" required>
+										<option value="docker" name="project_category" selected>docker模式</option>
+										<option value="host" name="project_category">主机模式</option>
+									</select>
+                                </div>
+                            <div id="unProdEnvConfig" class="form-group">
 								<div class="form-group">
                                     <input class="form-control" id="project_repertory" name="project_repertory" value="git" type="hidden" />
 								</div>
@@ -76,11 +86,9 @@
 									<label>仓库账户/密码/分支<i class="fa fa-info-circle"
 										data-toggle="tooltip" title="Git的账户/密码/分支"></i></label>
 									<div class="form-inline from-group">
-										<input type="text" class="form-control" name="project_repo_user"
-											id="project_repo_user" placeholder="请输入账户" /> <input
-											type="text" class="form-control" id="project_repo_passwd" name="project_repo_passwd"
-                                            placeholder="请输入密码"  /> <input type="text" class="form-control"
-                                            id="project_branch" name="project_branch" placeholder="请输入分支" />
+										<input type="text" class="form-control" name="project_repo_user" id="project_repo_user"
+                                            placeholder="请输入账户" /> <input type="text" class="form-control" id="project_repo_passwd" name="project_repo_passwd"
+                                            placeholder="请输入密码"  /> <input type="text" class="form-control" id="project_branch" name="project_branch" placeholder="请输入分支" />
 									</div>
 								</div>
 								<div class="form-group" >			 		             
@@ -103,8 +111,8 @@
 								<div class="form-group">
 									<label><font color='red'>* </font>源代码存放地址</label> 
 									<input class="form-control" id="project_repo_dir" name="project_repo_dir" value="{{project_dir}}source/" required pattern="^/.*/$" title="正确格式：/path/"  />
-								</div>																					
-
+								</div>
+                            </div>
 								<button type="reset" class="btn btn-default">撤销</button>
 								<button type="button" class="btn btn-default"  onclick="addDeployProject(this,'audit')" >提交</button>
 						</div>
@@ -122,33 +130,60 @@
 								</select>
 							</div>
 							<div class="form-group">
-								<label><font color='red'>* </font>k8s节点选择</label> <br>
+								<label><font color='red'>* </font>k8s/目标服务器选择</label> <br>
 								<select class="form-control"   name="k8s_id" id="k8s_id" required >
                                     <option value="">请选择k8s节点</option>
  								    {% for ds in baseAssets.k8s %}
 									    <option name="k8s_id" value="{{ds.id}}">{{ds.k8s_name}}</option>
 									{% endfor %}
 								</select>
+					            <select multiple class="form-control" name="project_server" id="project_server" style="display: none" >
+                                    <option value="">请选择目标服务器</option>
+								</select>
 							</div>
 							<div class="form-group">
-								<label><font color='red'>* </font>对外开放端口</label>
+								<label>对外开放端口</label>
                                 <div class="form-inline from-group">
-										<input type="text" class="form-control" name="project_service_port"
-											id="project_service_port" placeholder="请输入服务端口" onmouseleave="check_service_port('project_service_port')" /> <input type="text"
-                                            class="form-control" id="project_debug_port" name="project_debug_port" onmouseleave="check_service_port('project_debug_port')"
+										<input type="number" class="form-control" name="project_service_port"
+											id="project_service_port" placeholder="请输入服务端口" onmouseleave="check_service_port('project_service_port')"  onkeyup="this.value=this.value.replace(/\D/g,'')" /> <input type="number"
+                                            class="form-control" id="project_debug_port" name="project_debug_port" onmouseleave="check_service_port('project_debug_port')"  onkeyup="this.value=this.value.replace(/\D/g,'')"
                                             placeholder="请输入debug端口" />
                                 </div>
 								<p class="help-block" id="help-result-info">例如：20001,只能是20000-40000之间的端口</p>
 							</div>
 							<div class="form-group">
+								<label><font color='red'>* </font>副本数</label>
+                                <div class="form-inline from-group">
+                                    <input type="number" class="form-control" value="1" size="5" name="project_replication" id="project_replication" placeholder="请输入副本数"  onkeyup="check_replication_number('project_replication')" />
+                                </div>
+								<p class="help-block" id="help-result-info">例如：1,只能是1~5之间的整数</p>
+							</div>
+                            <div class="form-group">
+                                <label>节点/污点设置</label>
+                                <div class="form-inline from-group">
+                                    <input type="text" class="form-control" name="project_tolerations" id="project_tolerations" placeholder="tolerations设置" /> <input type="text"
+                                            class="form-control" id="project_node_selector" name="project_node_selector" placeholder="node Selector设置" />
+                                </div>
+                                <p class="help-block">必须是字典格式，例如：{"zone":"u2licai-561"},谨慎使用</p>
+                            </div>
+							<div class="form-group">
 								<label>容器环境变量</label>
                                 <input class="form-control"  type="text" id="project_env_var" name="project_env_var" />
-								<p class="help-block">例如：{'ENV':'test'} 必须是字典格式</p>
+								<p class="help-block">例如：{"ENV":"test"} 必须是字典格式</p>
 							</div>
 							<div class="form-group">
 								<label>容器日志挂载路径</label>
                                 <input class="form-control"  type="text" id="project_mount_path" name="project_mount_path" />
 								<p class="help-block">例如：/usr/local/tomcat/logs 只能是目录</p>
+							</div>
+							<div class="form-group" id="extConfig" style="display: none;">
+								<label><font color='red'>* </font>部署授权组<i class="fa fa-info-circle" data-toggle="tooltip" title="选择的用户组能够授权部署工单"></i></label> <br>
+								<select class="form-control" name="project_audit_group" id="project_audit_group">
+									<option name="project_audit_group" id="project_audit_group" selected="selected" value="">选择一个授权组</option>
+									{% for ds in groupList %}
+										<option name="project_audit_group"  value="{{ds.id}}">{{ds.name}}</option>
+									{% endfor %}
+								</select>
 							</div>
 						</div>
 						<!-- /.col-lg-6 (nested) -->
@@ -179,6 +214,18 @@ $(function(){
 
 });
 
+
+function check_replication_number(id){
+    var btnObj=$('#'+id)
+    var data=btnObj.val()
+    if(data){
+        if(Number(data) > 5 || Number(data) < 1 ){
+            btnObj.val('1')
+        }
+    }else{
+        btnObj.val('1')
+    }
+}
 
 function check_service_port(id) {
     var btnObj=$('#'+id)
@@ -293,73 +340,141 @@ function oBtServiceSelect(){
 	   }
 }
 
+function oBtEnvType() {
+	   var obj = document.getElementById("project_env");
+	   var index = obj.selectedIndex;
+	   var value = obj.options[index].value;
+	   if (value=="prod"){
+		   document.getElementById("extConfig").style.display = "";
+		   document.getElementById("unProdEnvConfig").style.display = "none";
+	   }
+	   else {
+		   document.getElementById("extConfig").style.display = "none";
+		   document.getElementById("unProdEnvConfig").style.display = "";
+	   }
+}
+
+function oBtCategoryType() {
+    var obj = document.getElementById('project_category');
+    var index = obj.selectedIndex;
+    var value = obj.options[index].value;
+    if(value=='host'){
+        document.getElementById('project_server').style.display="";
+        document.getElementById("k8s_id").style.display = "none";
+        $.ajax({
+			dataType: "JSON",
+			url:'/api/server/', //请求地址
+			type:"GET",  //提交类似
+			success:function(data){
+				var binlogHtml = '<select multiple name="project_server" id="project_server"  required>'
+				var selectHtml = '';
+				for (var i=0; i <data.length; i++){
+                    selectHtml += '<option name="project_server" value="'+ data[i]["id"] +'">' + data[i]["ip"] + ' | ' + data[i]["hostname"] + '</option>'
+				};
+				binlogHtml = binlogHtml + selectHtml + '</select>';
+				document.getElementById("project_server").innerHTML= selectHtml;
+				$('#project_server').multiselect('destroy');
+ 			    $('#project_server').multiselect({
+			        enableClickableOptGroups: true,
+			        enableCollapsibleOptGroups: true,
+			        includeSelectAllOption: true,
+			       	enableFiltering: true,
+			    });
+			},
+        });
+    } else {
+        $("#k8s_id").show();
+        $('#project_server option:selected').empty();
+        $('#project_server').hide().next().hide();
+    }
+}
 
 function addDeployProject(obj) {	
 	var btnObj = $(obj);
-	var required = ["project_id","service_id","project_env","project_address","project_repo_passwd","project_repo_user","jenkins_id","k8s_id","project_repo_dir"];
-	btnObj.attr('disabled',true);
-		var form = document.getElementById('add_deploy_project');
-		for (var i = 0; i < form.length; ++i) {
-			var name = form[i].name;
-			var value = form[i].value;	
-			idx = $.inArray(name, required);						
-			if (idx >= 0 && value.length == 0){
-				window.wxc.xcConfirm("请注意*必填项不能为空~", window.wxc.xcConfirm.typeEnum.error);
-				btnObj.removeAttr('disabled');
-				return false;
-			};					
-		};
-		if (!check_service_port('project_service_port') || !check_service_port('project_debug_port')){
-				window.wxc.xcConfirm("服务端口填写数字,且数字只能为20000~50000", window.wxc.xcConfirm.typeEnum.error);
-				btnObj.removeAttr('disabled');
-				return false;
-        }
-
-		var editor = ace.edit("project_local_command");
-	    var project_local_command = editor.getSession().getValue(); 
-	    var formData = new FormData();
-	    formData.append('project_env',$('#project_env').val());	
-	    formData.append('project_address',$('#project_address').val());
-	    formData.append('project_dir',$('#project_dir').val());
-	    formData.append('project_repo_dir',$('#project_repo_dir').val());
-	    formData.append('project_repo_user',$('#project_repo_user').val());	
-	    formData.append('project_repo_passwd',$('#project_repo_passwd').val());
-	    formData.append('project_branch',$('#project_branch').val());
-	    formData.append('project_id',$('#project_id option:selected').val());
-	    formData.append('service_id',$('#service_id option:selected').val());
-	    formData.append('project_repertory',$('#project_repertory').val());
-	    formData.append('project_local_command',project_local_command);
-	    formData.append('project_type',project_type);
-	    formData.append('jenkins_id',$('#jenkins_id option:selected').val());
-	    formData.append('k8s_id',$('#k8s_id option:selected').val());
-	    formData.append('project_service_port',$('#project_service_port').val());
-	    formData.append('project_debug_port',$('#project_debug_port').val());
-	    formData.append('project_env_var',$('#project_env_var').val());
-        formData.append('project_mount_path',$('#project_mount_path').val());
-
-		$.ajax({
-/* 				dataType: "JSON", */
-			url:'/deploy_add/', //请求地址
-			type:"POST",  //提交类似
-		    processData: false,
-		    contentType: false,				
-			data:formData,  //提交参数
-			success:function(response){
-				btnObj.removeAttr('disabled');				
-				if (response["code"] == 200){
-					window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.success);
-					window.location.href="/deploy_list";
-				}
-				else {
-					window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.error);
-				};
-			},
-	    	error:function(response){
-	    		btnObj.removeAttr('disabled');
-	    		window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.error);
-	    	}
-		});	
+	if($("#project_env").val() == "prod"){
+        var required=["project_id","service_id","project_env","project_audit_group","project_category"];
+    }else{
+	    var required=["project_id","service_id","project_env","project_address","project_repo_passwd","project_repo_user","jenkins_id","project_repo_dir",'project_category'];
 	}
+    var serverList = new Array();
+    $("#project_server option:selected").each(function () {
+			serverList.push($(this).val())
+    })
+    if ($("#project_category").val() == "docker") {
+	    required.push('k8s_id')
+    }else{
+        if (serverList === undefined || serverList.length == 0){
+ 			window.wxc.xcConfirm("请注意*必填项不能为空~", window.wxc.xcConfirm.typeEnum.error);
+ 			btnObj.removeAttr('disabled');
+			return false;
+        }
+    }
+	btnObj.attr('disabled',true);
+	var form = document.getElementById('add_deploy_project');
+	for (var i = 0; i < form.length; ++i) {
+		var name = form[i].name;
+		var value = form[i].value;
+		idx = $.inArray(name, required);
+		if (idx >= 0 && value.length == 0){
+			window.wxc.xcConfirm("请注意*必填项不能为空~", window.wxc.xcConfirm.typeEnum.error);
+			btnObj.removeAttr('disabled');
+			return false;
+		};
+	};
+	if (!check_service_port('project_service_port') || !check_service_port('project_debug_port')){
+			window.wxc.xcConfirm("服务端口填写数字,且数字只能为20000~50000", window.wxc.xcConfirm.typeEnum.error);
+			btnObj.removeAttr('disabled');
+			return false;
+    }
+
+	var editor = ace.edit("project_local_command");
+	var project_local_command = editor.getSession().getValue();
+    var formData = new FormData();
+	formData.append('project_env',$('#project_env').val());
+	formData.append('project_address',$('#project_address').val());
+	formData.append('project_dir',$('#project_dir').val());
+	formData.append('project_repo_dir',$('#project_repo_dir').val());
+	formData.append('project_repo_user',$('#project_repo_user').val());
+	formData.append('project_repo_passwd',$('#project_repo_passwd').val());
+	formData.append('project_branch',$('#project_branch').val());
+	formData.append('project_id',$('#project_id option:selected').val());
+	formData.append('service_id',$('#service_id option:selected').val());
+	formData.append('project_repertory',$('#project_repertory').val());
+	formData.append('project_local_command',project_local_command);
+	formData.append('project_type',project_type);
+	formData.append('jenkins_id',$('#jenkins_id option:selected').val());
+	formData.append('k8s_id',$('#k8s_id option:selected').val());
+	formData.append('project_category',$('#project_category option:selected').val())
+	formData.append('project_service_port',$('#project_service_port').val());
+	formData.append('project_debug_port',$('#project_debug_port').val());
+	formData.append('project_env_var',$('#project_env_var').val());
+    formData.append('project_mount_path',$('#project_mount_path').val());
+    formData.append('project_audit_group',$('#project_audit_group').val());
+    formData.append('project_replication', $('#project_replication').val());
+    formData.append('project_server',serverList);
+	$.ajax({
+/* 			dataType: "JSON", */
+		url:'/deploy_add/', //请求地址
+		type:"POST",  //提交类似
+	    processData: false,
+	    contentType: false,
+		data:formData,  //提交参数
+		success:function(response){
+			btnObj.removeAttr('disabled');
+			if (response["code"] == 200){
+				window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.success);
+				window.location.href="/deploy_list";
+			}
+			else {
+				window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.error);
+			};
+		},
+		error:function(response){
+			btnObj.removeAttr('disabled');
+			window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.error);
+		}
+	});
+}
 
 </script>
 

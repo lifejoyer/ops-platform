@@ -63,19 +63,30 @@
 				                            </table>				       
 										{% if projectList %}
 											<ul class="pagination">
+                                                    {% if projectList.paginator.num_pages >= 5 and projectList.number != 1 %}
+                                                        <li><a href="/deploy_record/1/">首页</a></li>
+                                                    {% endif %}
+
 											        {% if projectList.has_previous %}
-											            <li><a href="/deploy_record/{{ projectList.previous_page_number }}/">&laquo;</a></li>
+											            <li><a href="/deploy_record/{{ projectList.previous_page_number }}/">prev</a></li>
 											        {% endif %}
-											        {% for page in projectList.paginator.page_range %}
+											        {% for page in page_range %}
 											        	{% if projectList.number == page %}
 											        		<li class="disabled"><a href="/deploy_record/{{page}}/">{{page}}</a></li>
 											        	{% else %}
-											        		<li><a href="/deploy_record/{{page}}/">{{page}}</a></li>
+                                                            <li><a href="/deploy_record/{{page}}/">{{page}}</a></li>
 											        	{% endif %}
 											        {% endfor %}
 											        {% if projectList.has_next %}
-											            <li><a href="/deploy_record/{{ projectList.next_page_number }}/">&raquo;</a></li>
+											            <li><a href="/deploy_record/{{ projectList.next_page_number }}/">next</a></li>
 											        {% endif %}
+
+                                                    {% if projectList.paginator.num_pages == projectList.number %}
+                                                        <li class="disabled"><a href="/deploy_record/{{ projectList.paginator.num_pages }}/">末页</a></li>
+                                                    {% else %}
+                                                        <li><a href="/deploy_record/{{ projectList.paginator.num_pages }}/">末页</a></li>
+                                                    {% endif %}
+
 											</ul>
                      		            {% endif %}		
 										</div>
@@ -100,23 +111,7 @@
 
 		$(document).ready(function() {
 		    $('#projectTableList').DataTable({
-                responsive: true,
-{#	        "columns": [#}
-{#	            {#}
-{#	                "className":      'details-control',#}
-{#	                "orderable":      false,#}
-{#	                "data":           null,#}
-{#	                "defaultContent": ''#}
-{#	            },#}
-{#	            { "data": "产品线" },#}
-{#	            { "data": "服务名称" },#}
-{#	            { "data": "Docker镜像" },#}
-{#	            { "data": "版本号"},#}
-{#	            { "data": "发布环境" },#}
-{#	            { "data": "操作用户" },#}
-{#	            { "data": "发布时间" }#}
-{#	        ],#}
-{#	        "order": [[7, 'desc']]#}
+                responsive: true
 		    });
 		});
 

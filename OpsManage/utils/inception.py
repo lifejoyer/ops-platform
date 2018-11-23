@@ -1,6 +1,6 @@
 #!/usr/bin/env python  
 # _#_ coding:utf-8 _*_ 
-import re, MySQLdb
+import re, pymysql
 from OpsManage.models import Inception_Server_Config,Custom_High_Risk_SQL
 from OpsManage.utils.logger import logger
 
@@ -15,7 +15,7 @@ class Inception():
     def run(self,action,auditSql):
         try:
             incept = Inception_Server_Config.objects.get(id=1)
-        except Exception, ex:
+        except Exception as ex:
             return {"status":'error',"errinfo":str(ex)}
         sql='''/*--user={db_user};--password={db_passwd};--host={db_host};{action}--port={db_port};*/\
             inception_magic_start;
@@ -28,7 +28,7 @@ class Inception():
                                               action=action,auditSql=auditSql
                                               )
         try:
-            conn = MySQLdb.connect(host=incept.db_host,user='',passwd='',db='',port=int(incept.db_port))
+            conn = pymysql.connect(host=incept.db_host,user='',passwd='',db='',port=int(incept.db_port))
             cur = conn.cursor()
             ret = cur.execute(sql)
             result = cur.fetchall()
@@ -49,7 +49,7 @@ class Inception():
             cur.close()
             conn.close()
             return {"status":'success','data':dataList}
-        except MySQLdb.Error,e:
+        except pymysql.Error as e:
             logger.error(msg="Mysql Error %d: %s" % (e.args[0], e.args[1]))
             return {"status":'error',"errinfo":"Mysql Error %d: %s" % (e.args[0], e.args[1])}        
         
@@ -83,17 +83,17 @@ class Inception():
     def incQuery(self,sql):
         try:
             incept = Inception_Server_Config.objects.get(id=1)
-        except Exception, ex:
+        except Exception as ex:
             return {"status":'error',"errinfo":str(ex)}     
         try:
-            conn = MySQLdb.connect(host=incept.db_host,user='',passwd='',db='',port=int(incept.db_port))
+            conn = pymysql.connect(host=incept.db_host,user='',passwd='',db='',port=int(incept.db_port))
             cur = conn.cursor()
             ret = cur.execute(sql)
             result = cur.fetchall()
             cur.close()
             conn.close()
             return {"status":'success','data':result}
-        except MySQLdb.Error,e:
+        except pymysql.Error as e:
             logger.error(msg="Mysql Error %d: %s" % (e.args[0], e.args[1]))
             return {"status":'error',"errinfo":"Mysql Error %d: %s" % (e.args[0], e.args[1])}         
     
@@ -116,12 +116,12 @@ class Inception():
     
     def rollback(self,sql):
         try:
-            conn = MySQLdb.connect(
+            conn = pymysql.connect(
                                    host=self.db_host,user=self.db_user,
                                    passwd=self.db_passwd,db=self.db_name,
                                    port=int(self.db_port)
                                    )
-        except Exception,e:
+        except Exception as e:
             logger.error(msg="Mysql Error %d: %s" % (e.args[0], e.args[1]))
             return {"status":'error',"errinfo":"Mysql Error %d: %s" % (e.args[0], e.args[1])}        
         try:
@@ -133,7 +133,7 @@ class Inception():
             cur.close()
             conn.close()
             return {"status":'success','data':result}
-        except MySQLdb.Error,e:
+        except pymysql.Error as e:
             #遇到错误就回滚
             conn.rollback()
             return {"status":'error',"errinfo":"Mysql Error %d: %s" % (e.args[0], e.args[1])}         
@@ -149,7 +149,7 @@ class Inception():
     def getRollBackSQL(self,host,user,passwd,dbName,port,tableName,sequence):
         sql='''select rollback_statement from {tableName} where opid_time="{sequence}";'''.format(tableName=tableName,sequence=sequence)       
         try:
-            conn = MySQLdb.connect(
+            conn = pymysql.connect(
                                    host=host,user=user,
                                    passwd=passwd,db=dbName,
                                    port=int(port)
@@ -160,14 +160,14 @@ class Inception():
             cur.close()
             conn.close()
             return {"status":'success','data':result}
-        except MySQLdb.Error,e:
+        except pymysql.Error as e:
             logger.error(msg="Mysql Error %d: %s" % (e.args[0], e.args[1]))
             return {"status":'error',"errinfo":"Mysql Error %d: %s" % (e.args[0], e.args[1])}
                
     def getRollBackTable(self,host,user,passwd,dbName,port,sequence):
         sql='''SELECT tablename from  $_$inception_backup_information$_$ where opid_time = '{sequence}';'''.format(sequence = sequence)      
         try:
-            conn = MySQLdb.connect(
+            conn = pymysql.connect(
                                    host=host,user=user,
                                    passwd=passwd,db=dbName,
                                    port=int(port)
@@ -178,6 +178,6 @@ class Inception():
             cur.close()
             conn.close()
             return {"status":'success','data':result}
-        except MySQLdb.Error,e:
+        except pymysql.Error as e:
             logger.error(msg="Mysql Error %d: %s" % (e.args[0], e.args[1]))
             return {"status":'error',"errinfo":"Mysql Error %d: %s" % (e.args[0], e.args[1])}                  

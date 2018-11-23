@@ -8,7 +8,7 @@ from OpsManage.models import Cron_Config,Server_Assets
 from OpsManage.utils.ssh_tools import SSHManage
 from OpsManage.utils import base
 from OpsManage.tasks.cron import recordCron
-from OpsManage.models import Log_Cron_Config
+from OpsManage.models import Log_Cron_Config,Server_Assets
 from django.contrib.auth.decorators import permission_required
 from OpsManage.utils.ansible_api_v2 import ANSRunner
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -17,7 +17,7 @@ from dao.assets import AssetsSource
 @login_required()
 @permission_required('OpsManage.can_add_cron_config',login_url='/noperm/') 
 def cron_add(request):
-    serverList = AssetsSource().serverList()
+    serverList = Server_Assets.objects.all()
     if request.method == "GET": 
         return render(request,'cron/cron_add.html',{"user":request.user,"serverList":serverList},
                                   )
@@ -46,14 +46,14 @@ def cron_add(request):
                                        cron_script_path=request.POST.get('cron_script_path',None),
                                        cron_status=cron_status,
                                        )
-            recordCron.delay(cron_user=str(request.user),cron_id=cron.id,cron_name=cron.cron_name,cron_content="添加计划任务",cron_server=server.ip)
-        except Exception,e:
+            recordCron(cron_user=str(request.user),cron_id=cron.id,cron_name=cron.cron_name,cron_content="添加计划任务",cron_server=server.ip)
+        except Exception as e:
             return render(request,'cron/cron_add.html',{"user":request.user,
                                                                "serverList":serverList,
                                                                "errorInfo":"提交失败，错误信息："+str(e)},
                                   )    
         
-        if  int(cron_status) == 1: 
+        if int(cron_status) == 1:
             try:
                 sList = [server.ip]
                 if server.keyfile == 1:resource = [{"ip": server.ip, "port": int(server.port),"username": server.username}] 
@@ -79,7 +79,7 @@ def cron_add(request):
                                                                                                      )  
                 ANS.run_model(host_list=sList,module_name="cron",module_args=cron_args)   
                 result = ANS.handle_model_data(ANS.get_model_result(), 'cron',cron_args) 
-            except Exception,e:
+            except Exception as e:
                 return render(request,'cron/cron_add.html',{"user":request.user,
                                                                    "serverList":serverList,
                                                                    "errorInfo":"错误信息:"+str(e)}, 
@@ -134,8 +134,8 @@ def cron_mod(request,cid):
                        cron_script_path=request.POST.get('cron_script_path',None),
                        cron_status=request.POST.get('cron_status'),
                                        )
-            recordCron.delay(cron_user=str(request.user),cron_id=cid,cron_name=cron.cron_name,cron_content="修改计划任务",cron_server=cron.cron_server.ip)
-        except Exception,e:
+            recordCron(cron_user=str(request.user),cron_id=cid,cron_name=cron.cron_name,cron_content="修改计划任务",cron_server=cron.cron_server.ip)
+        except Exception as e:
             return render(request,'cron/cron_modf.html',
                                       {"user":request.user,"errorInfo":"更新失败，错误信息："+str(e)},
                                   )  
@@ -149,7 +149,7 @@ def cron_mod(request,cid):
                 cron.cron_script=request.FILES.get('cron_script')
                 cron.save()
             ANS = ANSRunner(resource)
-            if  cron.cron_status == 0:ANS.run_model(host_list=sList,module_name="cron",module_args="""name={name} state=absent""".format(name=cron.cron_name))       
+            if cron.cron_status == 0:ANS.run_model(host_list=sList,module_name="cron",module_args="""name={name} state=absent""".format(name=cron.cron_name))
             else:
                 if cron.cron_script:
                     src = os.getcwd() + '/' + str(cron.cron_script)
@@ -162,14 +162,14 @@ def cron_mod(request,cid):
                                                                                                      user=cron.cron_user,job=cron.cron_command
                                                                                                      )                              
                 ANS.run_model(host_list=sList,module_name="cron",module_args=cron_args)    
-        except Exception,e:
+        except Exception as e:
             return render(request,'cron/cron_modf.html',{"user":request.user,"errorInfo":"错误信息:"+str(e)}, 
                                   )                     
         return HttpResponseRedirect('/cron_mod/{id}/'.format(id=cid))
     
     elif request.method == "DELETE":      
         try:
-            recordCron.delay(cron_user=str(request.user),cron_id=cid,cron_name=cron.cron_name,cron_content="删除计划任务",cron_server=cron.cron_server.ip)
+            recordCron(cron_user=str(request.user),cron_id=cid,cron_name=cron.cron_name,cron_content="删除计划任务",cron_server=cron.cron_server.ip)
             sList = [cron.cron_server.ip]
             if cron.cron_server.keyfile == 1:resource = [{"ip": cron.cron_server.ip, "port": int(cron.cron_server.port),"username": cron.cron_server.username}] 
             else:resource = [{"ip": cron.cron_server.ip, "port": int(cron.cron_server.port),
@@ -177,10 +177,59 @@ def cron_mod(request,cid):
             ANS = ANSRunner(resource)  
             ANS.run_model(host_list=sList,module_name="cron",module_args="""name={name} state=absent""".format(name=cron.cron_name))    
             cron.delete()      
-        except Exception,e:
+        except Exception as e:
             return JsonResponse({'msg':'删除失败：'+str(e),"code":500,'data':[]})                
         return JsonResponse({'msg':'删除成功',"code":200,'data':[]})       
-        
+
+@login_required()
+@permission_required('OpsManage.can_change_cron_config',login_url='/noperm/')
+def cron_init(request,cid):
+    if request.method == "POST":
+        try:
+            cron = Cron_Config.objects.select_related().get(id=cid)
+            if str(cron.cron_status) == "1":
+                return JsonResponse({'msg': "已初始化", "code": 200, 'data': []})
+        except:
+            return JsonResponse({'msg':"初始化失败","code":500,'data':[]})
+
+        try:
+            sList = [cron.cron_server.ip]
+            if cron.cron_server.keyfile == 1:
+                resource = [{"ip": cron.cron_server.ip, "port": int(cron.cron_server.port), "username": cron.cron_server.username}]
+            else:
+                resource = [{"ip": cron.cron_server.ip, "port": int(cron.cron_server.port), "username": cron.cron_server.username,
+                             "password": cron.cron_server.passwd}]
+            ANS = ANSRunner(resource)
+            if cron.cron_script:
+                src = os.getcwd() + '/upload/' + str(cron.cron_script)
+                file_args = """src={src} dest={dest} owner={user} group={user} mode=755""".format(src=src,
+                                                                                                  dest=cron.cron_script_path,
+                                                                                                  user=cron.cron_user)
+                ANS.run_model(host_list=sList, module_name="copy", module_args=file_args)
+                result = ANS.handle_model_data(ANS.get_model_result(), 'copy', file_args)
+                if result[0].get('status') == 'failed':
+                    return JsonResponse({'msg':"初始化失败" + result[0].get('msg'),"code":500,'data':[]})
+                    #
+            cron_args = """name={name} minute='{minute}' hour='{hour}' day='{day}'
+                                   weekday='{weekday}' month='{month}' user='{user}' job='{job}'""".format(
+                name=cron.cron_name, minute=cron.cron_minute,
+                hour=cron.cron_hour, day=cron.cron_day,
+                weekday=cron.cron_week, month=cron.cron_month,
+                user=cron.cron_user, job=cron.cron_command
+                )
+            ANS.run_model(host_list=sList, module_name="cron", module_args=cron_args)
+            result = ANS.handle_model_data(ANS.get_model_result(), 'cron', cron_args)
+            Cron_Config.objects.filter(id=cid).update(cron_status='1')
+            recordCron(cron_user=str(request.user), cron_id=cid, cron_name=cron.cron_name, cron_content="初始化计划任务",
+                       cron_server=cron.cron_server.ip)
+        except Exception as e:
+            return JsonResponse({'msg': "初始化失败" + str(e), "code": 500, 'data': []})
+
+        if result[0].get('status') == 'failed':
+            return JsonResponse({'msg': "初始化失败" + result[0].get('msg').replace('\n',''), "code": 500, 'data': []})
+        return JsonResponse({'msg': '初始化成功', "code": 200, 'data': []})
+
+
 @login_required()
 @permission_required('OpsManage.can_add_cron_config',login_url='/noperm/') 
 def cron_config(request):
@@ -215,7 +264,7 @@ def cron_config(request):
                                                cron_script=request.FILES.get('file', None),
                                                cron_status=request.POST.get('cron_status',0),
                                                )
-                    recordCron.delay(cron_user=str(request.user),cron_id=cron.id,cron_name=cron.cron_name,cron_content="导入计划任务",cron_server=server.ip)
+                    recordCron(cron_user=str(request.user),cron_id=cron.id,cron_name=cron.cron_name,cron_content="导入计划任务",cron_server=server.ip)
                     if  int(cron.cron_status) == 1: 
                         sList = [server.ip]
                         if server.keyfile == 1:resource = [{"ip": server.ip, "port": int(server.port),"username": server.username}] 
@@ -228,7 +277,7 @@ def cron_config(request):
                                                                                                                                                          user=cron.cron_user,job=cron.cron_command
                                                                                                                                                          )
                                                                                      )                     
-                except Exception,e:
+                except Exception as e:
                     repeatCron = cron_name + "<br>" + repeatCron 
         except:
             return JsonResponse({'msg':'数据格式不对',"code":500,'data':[]}) 

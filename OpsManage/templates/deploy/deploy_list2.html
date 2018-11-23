@@ -1,0 +1,449 @@
+{% extends 'index.html' %}
+{% block ace-content %}
+<style type="text/css">
+    td.details-control {
+        background: url('/static/img/details_open.png') no-repeat center center;
+        cursor: pointer;
+    }
+
+    tr.shown td.details-control {
+        background: url('/static/img/details_close.png') no-repeat center center;
+    }
+
+    table.dataTable tbody th, table.dataTable tbody td {
+        padding: 13px !important;
+    }
+</style>
+<script src="/static/js/template-web.js"></script>
+<script src="/static/js/project_deploy.js"></script>
+{% endblock %}
+{% block page-content %}
+<div id="page-wrapper">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header"><i class="fa  fa-align-justify "></i> 项目列表</h1>
+        </div>
+        <!-- /.col-lg-12 -->
+
+    </div>
+    <div class="row">
+        <div class="col-lg-3 col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-desktop fa-5x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <div class="huge">{{ totalProject }}</div>
+                            <div>总项目数</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="#">
+                    <div class="panel-footer">
+                        <span class="pull-left">View Details</span>
+                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                        <div class="clearfix"></div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="panel panel-green">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-laptop fa-5x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <div class="huge">{{ prodProject }}</div>
+                            <div>生产环境</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="#">
+                    <div class="panel-footer">
+                        <span class="pull-left">View Details</span>
+                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                        <div class="clearfix"></div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="panel panel-yellow">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-tablet fa-5x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <div class="huge">{{ uatProject }}</div>
+                            <div>灰度环境</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="#">
+                    <div class="panel-footer">
+                        <span class="pull-left">View Details</span>
+                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                        <div class="clearfix"></div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="panel panel-red">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-mobile-phone fa-5x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <div class="huge">{{ testProject }}</div>
+                            <div>测试环境</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="#">
+                    <div class="panel-footer">
+                        <span class="pull-left">View Details</span>
+                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                        <div class="clearfix"></div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-keyboard-o  fa-fw"></i> 项目查询
+                </div>
+                <div class="panel-body">
+                    <div class="col-xs-6 col-sm-3">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">产品线:</label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="selProject">
+                                    <option selected="selected" value="">请选择产品线</option>
+                                    {% for p in baseAssets.project %}
+                                        <option value="{{ p.id }}" name="project">{{ p.project_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">服务模块:</label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="selService">
+                                    <option selected="selected" value="">请选择一个服务</option>
+                                    {% for s in baseAssets.service %}
+                                        <option value="{{ s.service_name }}" name="service_name">{{ s.service_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <div id="divSelectedType"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-database"></i>项目列表明细
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <table width="100%" class="table table-striped table-bordered table-hover" id="deployTableList">
+                        <thead>
+                        <tr>
+                            <th>详情</th>
+                            <th>ID</th>
+                            <th>产品线</th>
+                            <th>服务模块</th>
+                            <th>服务类型</th>
+                            <th>编译类型</th>
+                            <th>仓库地址</th>
+                            <th>仓库用户</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for ds in serviceList %}
+                            <tr class="odd gradeX" height="50" style="line-height: 50px">
+                                <td></td>
+                                <td>{{ ds.id }} </td>
+                                <td>{{ ds.project.project_name }} </td>
+                                <td>{{ ds.service_name }} </td>
+                                <td>{{ ds.service_type }}</td>
+                                <td>
+                                    {% if ds.service_pom_path == "1" %}
+                                        <span class="label label-success">模块编译</span>
+                                    {% else %}
+                                        <span class="label label-warning">全局编译</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ ds.service_repo_address }}</td>
+                                <td>{{ ds.service_repo_user }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <!-- /.table-responsive -->
+                    <div class="well">
+                        <h4>项目管理说明</h4>
+                        <p>生产环境的代码部署需要审批，测试和灰度环境则不需要。</p>
+                        <a class="btn btn-default btn-lg btn-block" target="_blank" href="/deploy_add"><i
+                                class="fa fa-plus-circle "></i>新建代码部署</a>
+                    </div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+    </div>
+    <div class="modal fade" tabindex="-1" role="dialog" id="deployCompileModal" data-backdrop="static">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">创建打包详情</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="well well-lg" style="background:#000000; color:#ADFF2F">
+                        <div id="result">
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+    <script type="text/html" id="tmp">
+        <fieldset>
+
+            <legend class="envDetails">
+                <%list.map(function(ele){ %>
+                <button class="btn <%= ele.project_env == 'test'?'btn-primary':'btn-default' %>"
+                        data-id="<%= ele.id %>" data-http="/api/deploy/<%=ele.id%>" onclick="changeEnv(this)">
+                    <%=ele.project_env%>
+                </button>
+                <%})%>
+            </legend>
+            <%list.map(function(ele){ %>
+            <% if(ele.project_env == 'test'){ %>
+            <table cellpadding="0" width="100%" cellspacing="0" border="0"
+                   style="padding-left:50px;word-break:break-all;word-wrap:break-all;">
+                <tr>
+                    <td>代码分支: <%=ele.project_branch%></td>
+                    <td>服务端口: <%=ele.project_service_port%></td>
+                    <% if(ele.project_category == 'docker'){ %>
+                    <td>部署模式: docker</td>
+                    <% } else { %>
+                    <td>部署模式：主机</td>
+                    <%}%>
+                </tr>
+                <tr>
+
+                </tr>
+                <tr>
+                    <td>
+                        <a href="/deploy_mod/<%=ele.id%>" target="_blank">
+                            <button type="button" title="修改资料" class="btn btn-outline btn-primary">
+                                编辑修改
+                            </button>
+                        </a>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-outline btn-warning" data-uuid="<%=ele.project_uuid%>-compile"
+                                onclick="initProject(this,'<%=ele.service_name%>','<%=ele.id%>')">编译打包
+                        </button>
+                    </td>
+                    <td>
+                        <% if(ele.project_env == 'prod'){ %>
+                         <a href="/order/deploy/apply/<%=ele.id%>" target="_blank">
+                            <button type="button" title="部署" class="btn btn-outline btn-danger">
+                                请走工单
+                            </button>
+                         </a>
+                        <% } else { %>
+                        <a href="/deploy_run/<%=ele.id%>" target="_blank">
+                            <button type="button" title="部署" class="btn btn-outline btn-danger">
+                                开始部署
+                            </button>
+                        </a>
+                        <%}%>
+                    </td>
+                </tr>
+            </table>
+            <%}%>
+            <%})%>
+        </fieldset>
+    </script>
+    <script type="text/html" id="childTmp">
+        <tr>
+            <td>代码分支: <%=project_branch%></td>
+            <td>服务端口: <%=project_service_port%></td>
+            <% if(project_category == 'docker'){ %>
+            <td>部署模式: docker</td>
+            <% } else { %>
+            <td>部署模式：主机</td>
+            <%}%>
+        </tr>
+        <tr>
+            <td>
+                <a href="/deploy_mod/<%=id%>" target="_blank">
+                    <button type="button" title="修改资料" class="btn btn-outline btn-primary">
+                        修改编辑
+                    </button>
+                </a>
+            </td>
+            <td>
+                <button type="button" class="btn btn-warning btn-outline" data-uuid="<%=project_uuid%>-compile"
+                        onclick="initProject(this,'<%=service_name%>','<%=id%>')">编译打包
+                </button>
+            </td>
+            <td>
+                <% if(project_env=='prod'){ %>
+                <a href="/order/deploy/apply/<%=id%>" target="_blank">
+                    <button type="button" title="部署" class="btn btn-danger btn-outline">
+                        请走工单
+                    </button>
+                </a>
+                <% } else { %>
+                <a href="/deploy_run/<%=id%>" target="_blank">
+                    <button type="button" title="部署" class="btn btn-danger btn-outline">
+                        开始部署
+                    </button>
+                </a>
+                <%}%>
+            </td>
+        </tr>
+    </script>
+
+    <script type="text/javascript">
+        $(function () {
+            $("[data-toggle='popover']").popover();
+        });
+
+        var curpage = 1;
+        $(document).ready(function () {
+            var table = $('#deployTableList').DataTable({
+                /* 	        "ajax": "../ajax/data/objects.txt", */
+                "columns": [
+                    {
+                        "className": 'details-control',
+                        "orderable": false,
+                        "data": null,
+                        "defaultContent": ''
+                    },
+                    {"data": "ID"},
+                    {"data": "产品线"},
+                    {"data": "服务模块"},
+                    {"data": "服务类型"},
+                    {"data": "编译类型"},
+                    {"data": "仓库地址"},
+                    {"data": "仓库用户"}
+                ],
+                "order": [[1, 'desc']]
+            });
+
+            // Add event listener for opening and closing details
+            $('#deployTableList tbody').on('click', 'td.details-control', function () {
+                var dataList = [];
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+                dbId = row.data()["ID"];
+                $.ajax({
+                    url: "/api/deploy_v2/" + dbId + "/",
+                    type: "GET",
+                    async: false,
+                    data: {"id": dbId},
+                    dataType: "json",
+                    success: function (result) {
+                        dataList = result;
+                    }
+                });
+                /* 	    	console.log(dataList); */
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    row.child(template('tmp', {list: dataList})).show();
+                    tr.addClass('shown');
+                }
+            });
+            //服务模块
+            $('#selService').change(function () {
+                if ($('#selService').val() != "") {
+                    $("#hdnService").val($('#selService').val());
+                    var span = "<span class='label label-success' id='spanService'>" + $("#selService").find("option:selected").text()
+                        + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='service_name' type='hidden' value='"
+                        + $('#selService').val() + "' /></span> &nbsp;";
+                    if ($("#spanService").length == 0) {
+                        $('#divSelectedType').append(span);
+                    }
+                    else {
+                        $("#spanService").html($("#selService").find("option:selected").text()
+                            + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='service_name' type='hidden' value='"
+                            + $('#selService').val() + "' /></span> &nbsp;");
+                    }
+                    changepage(1);
+                }
+            })
+
+            //项目环境
+            $('#selProjectEnv').change(function () {
+                if ($('#selProjectEnv').val() != "") {
+                    $("#hdnProjectEnv").val($('#selProjectEnv').val());
+                    var span = "<span class='label label-success' id='spanProjectEnv'>" + $("#selProjectEnv").find("option:selected").text()
+                        + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='project_env' type='hidden' value='"
+                        + $('#selProjectEnv').val() + "' /></span> &nbsp;";
+                    if ($("#spanProjectEnv").length == 0) {
+                        $('#divSelectedType').append(span);
+                    }
+                    else {
+                        $("#spanProjectEnv").html($("#selProjectEnv").find("option:selected").text()
+                            + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='project_env' type='hidden' value='"
+                            + $('#selProjectEnv').val() + "' /></span> &nbsp;");
+                    }
+                    changepage(1);
+                }
+            })
+
+            //所属项目
+            $('#selProject').change(function () {
+                if ($('#selProject').val() != "") {
+                    $("#hdnProject").val($('#selProject').val());
+                    var span = "<span class='label label-success' id='spanSelinux'>" + $("#selProject").find("option:selected").text()
+                        + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='project' type='hidden' value='"
+                        + $('#selProject').val() + "' /></span> &nbsp;";
+                    if ($("#spanSelinux").length == 0) {
+                        $('#divSelectedType').append(span);
+                    }
+                    else {
+                        $("#spanSelinux").html($("#selProject").find("option:selected").text()
+                            + " <img alt='' src='/static/img/close.png' onclick='removeself(this)' /><input name='project' type='hidden' value='"
+                            + $('#selProject').val() + "' /></span> &nbsp;");
+                    }
+                    changepage(1);
+                }
+            })
+
+        })
+
+
+    </script>
+{% endblock %}

@@ -4,7 +4,7 @@ from celery import task
 from OpsManage.models import Global_Config,Log_Cron_Config
 
 
-@task  
+# @task
 def recordCron(cron_user,cron_id,cron_name,cron_content,cron_server=None):
     try:
         config = Global_Config.objects.get(id=1)
@@ -17,6 +17,6 @@ def recordCron(cron_user,cron_id,cron_name,cron_content,cron_server=None):
                                       cron_server = cron_server
                                       )
         return True
-    except Exception,e:
-        print e
+    except Exception as e:
+        print(e)
         return False

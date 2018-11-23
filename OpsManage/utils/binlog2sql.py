@@ -136,7 +136,7 @@ def fix_object(value):
     """Fixes python objects so that they can be properly inserted into SQL queries"""
     if PY3PLUS and isinstance(value, bytes):
         return value.decode('utf-8')
-    elif not PY3PLUS and isinstance(value, unicode):
+    elif not PY3PLUS and isinstance(value, str):
         return value.encode('utf-8')
     else:
         return value
@@ -398,7 +398,7 @@ class Binlog2sql(object):
 if __name__ == '__main__':
     args = command_line_args(sys.argv[1:])
     conn_setting = {'host': args.host, 'port': args.port, 'user': args.user, 'passwd': args.password, 'charset': 'utf8'}
-    print args
+    print(args)
     binlog2sql = Binlog2sql(connection_settings=conn_setting, start_file=args.start_file, start_pos=args.start_pos,
                             end_file=args.end_file, end_pos=args.end_pos, start_time=args.start_time,
                             stop_time=args.stop_time, only_schemas=args.databases, only_tables=args.tables,
@@ -406,4 +406,4 @@ if __name__ == '__main__':
                             back_interval=args.back_interval, only_dml=args.only_dml, sql_type=args.sql_type)
     sqlList = binlog2sql.process_binlog()
     for ds in sqlList:
-        print ds
+        print(ds)

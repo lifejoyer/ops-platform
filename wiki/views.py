@@ -30,20 +30,20 @@ def article_add(request):
         tags = request.POST.getlist('tag[]')
         try:
             category = Category.objects.get(id=category)
-        except Exception ,ex:
+        except Exception as ex:
             logger.warn(msg="获取分类失败: {ex}".format(ex=str(ex)))  
             return  JsonResponse({'msg':"获取分类失败: {ex}".format(ex=str(ex)),"code":500,'data':[]})              
         try:
             article = Post.objects.create(title=title,content=content,category=category,
                                       author=User.objects.get(username=request.user))
-        except Exception ,ex:
+        except Exception as ex:
             logger.warn(msg="创建文章失败: {ex}".format(ex=str(ex)))  
             return  JsonResponse({'msg':"创建文章失败: {ex}".format(ex=str(ex)),"code":500,'data':[]})  
         try:        
             for tg in tags:
                 tag = Tag.objects.get(id=tg)
                 article.tags.add(tag)
-        except Exception ,ex:
+        except Exception as ex:
             logger.warn(msg="创建文章标签失败: {ex}".format(ex=str(ex))) 
         return  JsonResponse({'msg':"文章添加成功","code":200,'data':[]})
     
@@ -62,7 +62,7 @@ def upload_image(request):
                 with open(filePath, 'wb+') as destination:
                     for chunk in f.chunks():
                         destination.write(chunk)
-            except Exception, ex:
+            except Exception as ex:
                 logger.error(msg="上传图片失败: {ex}".format(ex=ex))
             res = "<script>window.parent.CKEDITOR.tools.callFunction("+callback+",'/"+ 'wiki/upload/' + datePath + f.name +"', '');</script>"
             return HttpResponse (res)
@@ -75,7 +75,7 @@ def upload_image(request):
 def article_edit(request,pid):
     try:
         article = Post.objects.select_related().get(id=pid)
-    except Exception,ex:
+    except Exception as ex:
         logger.error(msg="文章不存在: {ex}".format(ex=ex))
         return render(request,'wiki/wiki_edit.html',{"user":request.user,"errorInfo":ex})
     if request.method == "GET":
@@ -90,20 +90,20 @@ def article_edit(request,pid):
         tags = request.POST.getlist('tag[]')
         try:
             category = Category.objects.get(id=category)
-        except Exception ,ex:
+        except Exception as ex:
             logger.warn(msg="获取分类失败: {ex}".format(ex=str(ex)))  
             return  JsonResponse({'msg':"获取分类失败: {ex}".format(ex=str(ex)),"code":500,'data':[]})              
         try:
             Post.objects.filter(id=pid).update(title=title,content=content,category=category,
                                     author=User.objects.get(username=request.user))
-        except Exception ,ex:
+        except Exception as ex:
             logger.warn(msg="更新文章失败: {ex}".format(ex=str(ex)))  
             return  JsonResponse({'msg':"更新文章失败: {ex}".format(ex=str(ex)),"code":500,'data':[]}) 
         try:
             newTagsList = []
             for tg in tags:
                 newTagsList.append(int(tg))
-        except Exception ,ex:
+        except Exception as ex:
             logger.warn(msg="获取文章标签失败: {ex}".format(ex=ex)) 
         try:  
             oldTagsList = [ t.id for t in  article.tags.all() ]
@@ -115,7 +115,7 @@ def article_edit(request,pid):
             for tg in delTagsList:
                 tag = Tag.objects.get(id=tg)
                 article.tags.remove(tag)                
-        except Exception ,ex:
+        except Exception as ex:
             logger.warn(msg="更新文章标签失败: {ex}".format(ex=ex)) 
         return  JsonResponse({'msg':"文章添加成功","code":200,'data':[]})        
 
@@ -137,7 +137,7 @@ def article_index(request):
 def article_show(request,pid):
     try:
         article = Post.objects.select_related().get(id=pid)
-    except Exception,ex:
+    except Exception as ex:
         logger.error(msg="文章不存在: {ex}".format(ex=ex))
         return render(request,'wiki/wiki_show.html',{"user":request.user,"errorInfo":ex})
     if request.method == "GET":
@@ -159,7 +159,7 @@ def article_show(request,pid):
 def article_category(request,pid):
     try:
         category = Category.objects.get(id=pid)
-    except Exception,ex:
+    except Exception as ex:
         logger.warn(msg="分类不存在: {ex}".format(ex=ex))
         return render(request,'wiki/wiki_base.html',{"user":request.user,"errorInfo":"分类不存在: {ex}".format(ex=ex)}) 
     categoryList = []
@@ -176,7 +176,7 @@ def article_category(request,pid):
 def article_tag(request,pid):
     try:
         tag = Tag.objects.get(id=pid)
-    except Exception,ex:
+    except Exception as ex:
         logger.warn(msg="标签不存在: {ex}".format(ex=ex))
         return render(request,'wiki/wiki_base.html',{"user":request.user,"errorInfo":"标签不存在: {ex}".format(ex=ex)}) 
     categoryList = []
@@ -193,7 +193,7 @@ def article_tag(request,pid):
 def article_archive(request,month):
     try:
         archiveDate =  base.getMonthFirstDayAndLastDay(month.split('/')[0],month.split('/')[1])
-    except Exception,ex:
+    except Exception as ex:
         return render(request,'wiki/wiki_base.html',{"user":request.user,"errorInfo":"归档时间不存在: {ex}".format(ex=ex)}) 
     categoryList = []
     for ds in Category.objects.all():

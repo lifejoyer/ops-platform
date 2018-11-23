@@ -21,9 +21,10 @@ class ServiceSerializer(serializers.ModelSerializer):
     project_id = serializers.IntegerField(source='project.id', read_only=True)
     class Meta:
         model = Service_Assets
-        fields = ('id','service_name','service_type', 'project_repo_passwd',
-                  'project_address', 'project_repo_user',
-                  'project_name', 'project_id')
+        fields = ('id','service_name','service_type',
+                  'service_pom_path', 'service_root_path',
+                  'service_repo_address','service_repo_user',
+                  'service_repo_passwd','project_name', 'project_id')
            
 
 
@@ -56,6 +57,12 @@ class K8sSerializer(serializers.ModelSerializer):
     class Meta:
         model = K8s_Assets
         fields = ('id','k8s_name','k8s_host','k8s_token')
+
+
+class RunEnvSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RunEnv_Assets
+        fields = ('id', 'env_level', 'env_name')
 
 
 class LineSerializer(serializers.ModelSerializer):
@@ -105,10 +112,10 @@ class ProjectConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project_Config
         fields = ('id','project_env','project_english_name','project_local_command',
-                  'project_repo_dir','project_debug_port','project_env_var',
+                  'project_repo_dir','project_debug_port','project_env_var','project_service_port',
                   "project_branch",'project_address','project_repertory',
                   'project_status','project_repo_user','project_mount_path',
-                  'project_uuid','k8s_host','jenkins_host','service_name')
+                  'project_uuid','k8s_host','jenkins_host','service_name','project_category')
 
 class DeployLogsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -147,11 +154,7 @@ class ServerSerializer(serializers.ModelSerializer):
     # keyfile = serializers.FileField(max_length=None, use_url=True)
     class Meta:
         model = Server_Assets
-        fields = ('id','ip','hostname','username','port','passwd',
-                  'line','cpu','cpu_number','vcpu_number','keyfile',
-                  'cpu_core','disk_total','ram_total','kernel',
-                  'selinux','swap','raid','system',
-                  'sudo_passwd')
+        fields = ('id','ip','hostname','username','port','passwd','sudo_passwd')
 
     def create(self, data):
         server = Server_Assets.objects.create(**data)

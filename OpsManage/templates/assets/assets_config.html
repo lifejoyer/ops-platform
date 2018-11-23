@@ -4,7 +4,7 @@
 <div id="page-wrapper">
             <div class="row">
                 <div class="col-lg-12">
-                    <h1 class="page-header"><i class="fa  fa-cogs "></i> 基础资产配置</h1>
+                    <h1 class="page-header"><i class="fa  fa-cogs "></i> 基础资源配置</h1>
                 </div>
                 <!-- /.col-lg-12 -->
             </div>
@@ -12,7 +12,7 @@
                 <div class="col-lg-6">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            	<i class="fa  fa-github-alt  "></i> 产品线类型
+                            	<i class="fa  fa-github-alt  "></i> 项目产品线
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
@@ -212,7 +212,53 @@
                     <!-- /.panel -->
                 </div>
                 <!-- /.col-lg-6 -->
-            </div>            
+            </div>
+			<div class="row">
+                <div class="col-lg-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            	<i class="fa fa-cloud"></i> 运行环境配置
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="table-responsive">
+								<div>
+	                        		<button type="button" class="btn btn-xs btn-default" data-toggle="modal" data-target="#myEnvironmentModal"><i class="glyphicon glyphicon-plus"></i></button>
+	                        	</div>
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>环境级别</th>
+                                            <th>环境名称</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    	{% for ds in baseAssets.environment %}
+	                                        <tr>
+	                                            <td>{{ds.id}}</td>
+                                                {% if ds.env_level == 1 %}
+	                                                <td>日常环境</td>
+                                                {% elif ds.env_level == 2 %}
+                                                    <td>生产环境</td>
+                                                {% endif %}
+	                                            <td>{{ds.env_name|slice:"12"}}</td>
+	                                            <td>
+                                                    <button  type="button" class="btn btn-xs btn-default" data-toggle="modal" data-target="#modfRunEnvModal-{{ds.id}}"><abbr title="编辑"><i class="glyphicon glyphicon-edit"></i></abbr></button>
+                                                    <button  type="button" class="btn btn-xs btn-default" onclick="delAssetsData(this,'environment',{{ds.id}})"><abbr title="删除"><i class="glyphicon glyphicon-trash"></i></abbr></button>
+	                                            </td>
+	                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.table-responsive -->
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                </div>
+            </div>
 </div>
 
 
@@ -291,10 +337,48 @@
                                 <option value="">选择应用类型</option>
                                 <option value="tomcat" name="service_type">tomcat</option>
                                 <option value="jar" name="service_type">jar</option>
+                                <option value="nginx" name="service_type">nginx</option>
+                                <option value="node" name="service_type">nodejs</option>
                                 <option value="war" name="service_type">war</option>
 							</select>
 						</div>
 					</div>
+                    <div class="form-group">
+						<label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>工作目录</strong></label>
+						<div class="col-sm-6">
+                            <select class="form-control" name="service_root_path" id="service_root_select">
+                                <option value="0" name="service_root_path" selected="selected">按包名称</option>
+                                <option value="1" name="service_root_path">ROOT目录</option>
+							</select>
+						</div>
+					</div>
+                    <div class="form-group">
+						<label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>编译类型</strong></label>
+						<div class="col-sm-6">
+                            <select class="form-control" name="service_pom_path" id="service_pom_select">
+                                <option value="0" name="service_pom_path" selected="selected">全局编译</option>
+                                <option value="1" name="service_pom_path" >模块编译</option>
+							</select>
+						</div>
+					</div>
+                    <div class="form-group">
+						<label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>git仓库地址</strong></label>
+						<div class="col-sm-6">
+							<input class="form-control" type="text" name="service_repo_address" id="service_repo_address" placeholder="例如: http://git.jhh.com/jhs-loan/jhs-loan.git" />
+						</div>
+					</div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>git仓库账户</strong></label>
+						<div class="col-sm-6">
+                            <input class="form-control" type="text" name="service_repo_user" id="service_repo_user" placeholder="请输入git账户" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>git仓库密码</strong></label>
+						<div class="col-sm-6">
+                            <input class="form-control" type="password" name="service_repo_passwd" id="service_repo_passwd" placeholder="请输入git密码" />
+                        </div>
+                    </div>
 				</form>
 			</div>
 			<div class="modal-footer">
@@ -400,6 +484,47 @@
 	</div><!-- /.modal -->
 </div>
 
+<div class="modal fade" id="myEnvironmentModal" tabindex="-1" role="dialog" aria-labelledby="myEnvironmentModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+				</button>
+				<h4 class="modal-title" id="myEnvironmentModalLabel">
+					添加环境
+				</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal" role="form" id="environment_assets">
+                    <div class="form-group">
+						<label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>环境级别</strong></label>
+						<div class="col-sm-6">
+                            <select class="form-control" name="env_level" id="env_level_select">
+							    <option value="" name="env_level">请选择</option>
+                                <option value="1" name="env_level">日常环境</option>
+                                <option value="2" name="env_level">生产环境</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>环境名称</strong></label>
+						<div class="col-sm-6">
+							<input class="form-control" type="text" name="env_name" />
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+				</button>
+				<button type="button" class="btn btn-primary" onclick="addAssetsData(this,'environment')">
+					添加
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
 
 {% for ds in baseAssets.project %}
 	<div class="modal fade" id="modfProjectModal-{{ds.id}}" tabindex="-1" role="dialog" aria-labelledby="modfServiceModal-{{ds.id}}" aria-hidden="true">
@@ -479,10 +604,58 @@
                                     <option value="">选择应用类型</option>
                                     <option value="tomcat" name="service_type" {% if ds.service_type == "tomcat" %} selected {% endif %}>tomcat</option>
                                     <option value="jar" name="service_type" {% if ds.service_type == "jar" %} selected {% endif %}>jar</option>
+                                    <option value="nginx" name="service_type" {% if ds.service_type == "nginx" %} selected {% endif %}>nginx</option>
+                                    <option value="node" name="service_type" {% if ds.service_type == "node" %} selected {% endif %}>nodejs</option>
                                     <option value="war" name="service_type" {% if ds.service_type == "war" %} selected {% endif %}>war</option>
 							    </select>
 						    </div>
 					    </div>
+                        <div class="form-group">
+						    <label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>工作目录</strong></label>
+						    <div class="col-sm-6">
+                                <select class="form-control" name="service_root_path" id="service_root_select">
+                                    {% if ds.service_root_path == '1' %}
+                                        <option value="0" name="service_root_path" >按包名称</option>
+                                        <option value="1" name="service_root_path" selected="selected">ROOT目录</option>
+                                    {% else %}
+                                        <option value="0" name="service_root_path" selected="selected">按包名称</option>
+                                        <option value="1" name="service_root_path" >ROOT目录</option>
+                                    {% endif %}
+							    </select>
+						    </div>
+					    </div>
+                        <div class="form-group">
+						    <label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>编译类型</strong></label>
+						    <div class="col-sm-6">
+                                <select class="form-control" name="service_pom_path" id="service_pom_select">
+                                    {% if ds.service_pom_path == '1' %}
+                                        <option value="0" name="service_pom_path" >全局编译</option>
+                                        <option value="1" name="service_pom_path" selected="selected">模块编译</option>
+                                    {% else %}
+                                        <option value="0" name="service_pom_path" selected="selected">全局编译</option>
+                                        <option value="1" name="service_pom_path" >模块编译</option>
+                                    {% endif %}
+							    </select>
+						    </div>
+					    </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>git仓库地址</strong></label>
+                            <div class="col-sm-6">
+                                <input class="form-control" type="text" value="{{ ds.service_repo_address }}" name="service_repo_address" id="service_repo_address" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>git仓库账户</strong></label>
+                            <div class="col-sm-6">
+                                <input class="form-control" type="text" value="{{ ds.service_repo_user }}" name="service_repo_user" id="service_repo_user" placeholder="请输入git账户" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>git仓库密码</strong></label>
+                            <div class="col-sm-6">
+                                <input class="form-control" type="password" value="{{ ds.service_repo_passwd }}" name="service_repo_passwd" id="service_repo_passwd" placeholder="请输入git密码" />
+                            </div>
+                        </div>
 					</form>
 				</div>
 				<div class="modal-footer">
@@ -597,6 +770,51 @@
 {% endfor %}
 
 
+{% for ds in baseAssets.environment %}
+	<div class="modal fade" id="modfRunEnvModal-{{ds.id}}" tabindex="-1" role="dialog" aria-labelledby="modfRunEnvModalLabel-{{ds.id}}" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+						&times;
+					</button>
+					<h4 class="modal-title" id="modfRunEnvModalLabel-{{ds.id}}">
+						运行环境修改
+					</h4>
+				</div>
+				<div class="modal-body">
+					<form class="form-horizontal" role="form" id="runenv_assets_{{ds.id}}">
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>环境等级</strong></label>
+							<div class="col-sm-6">
+                                {% if ds.env_level == 1 %}
+								    <input class="form-control" type="text"  value="日常环境" disabled />
+                                {% elif ds.env_level == 2 %}
+                                    <input class="form-control" type="text"  value="生产环境" disabled />
+                                {% endif %}
+                                <input class="form-control" type="hidden" name="env_level" value="{{ ds.env_level }}" disabled />
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="form-field-4"><strong>环境名称</strong></label>
+							<div class="col-sm-6">
+								<input class="form-control" type="text" name="env_name" value="{{ds.env_name|default:""}}"/>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+					</button>
+					<button type="button" class="btn btn-primary" onclick="modfZoneAssetsData(this,{{ds.id}},'environment')">
+						修改
+					</button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal -->
+	</div>
+{% endfor %}
+
 <script type="text/javascript"> 
 	$(document).ready(function() {
 	    $('#serviceList').DataTable();
@@ -626,7 +844,12 @@
 				"project_id": $('#project_service_select option:selected').val(),
 				"project_name": $('#project_service_select option:selected').text(),
                 "service_type": $('#service_type_select option:selected').val(),
+                "service_root_path": $('#service_root_select option:selected').val(),
+                "service_pom_path": $('#service_pom_select option:selected').val(),
 				"service_name": document.getElementById("service_name").value,
+                "service_repo_address": $("#service_repo_address").val(),
+                "service_repo_user": $("#service_repo_user").val(),
+                "service_repo_passwd": $("#service_repo_passwd").val()
 			}), //提交参数
 			success:function(response){
 				btnObj.removeAttr('disabled');
@@ -678,7 +901,10 @@
 			var putUrl = '/api/status/';
 			var form = document.getElementById('status_assets');
 		}			
-
+        else if (op=='environment'){
+		    var putUrl = '/api/runenv/';
+		    var form = document.getElementById('environment_assets');
+        }
 		for (var i = 0; i < form.length; ++i) {
 			var name = form[i].name;
 			var value = form[i].value;
@@ -699,12 +925,12 @@
 			data:post_data, //提交参数
 			success:function(response){
 				btnObj.removeAttr('disabled');
-				window.wxc.xcConfirm("资产添加成功", window.wxc.xcConfirm.typeEnum.success);
+				window.wxc.xcConfirm("保存成功", window.wxc.xcConfirm.typeEnum.success);
  				location.reload();			
 			},
 	    	error:function(response){
 	    		btnObj.removeAttr('disabled');
-	    		window.wxc.xcConfirm("资产添加失败", window.wxc.xcConfirm.typeEnum.error);
+	    		window.wxc.xcConfirm("保存失败", window.wxc.xcConfirm.typeEnum.error);
 /* 	    		location.reload(); */
 	    	}
 		})	
@@ -729,6 +955,10 @@
 		else if (op=="project") {
 		    var putUrl = '/api/project/'+id+'/';
 		    var form = document.getElementById('project_assets_'+id);
+        }
+        else if (op=="environment") {
+		    var putUrl = '/api/runenv/'+id+'/';
+            var form = document.getElementById('runenv_assets_'+id);
         }
 
 		for (var i = 0; i < form.length; ++i) {
@@ -852,7 +1082,11 @@
 		}		
 		else if (op=="status"){
 			var putUrl = '/api/status/' + id + '/';
-		};			
+		}
+		else if (op=='environment'){
+		    var putUrl = '/api/runenv/' + id + '/';
+        }
+		;
 		var option = {				
 				title: "id-"+id,
 				btn: parseInt("0011",2),

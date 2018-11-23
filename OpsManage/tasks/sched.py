@@ -1,6 +1,6 @@
 #!/usr/bin/env python  
 # _#_ coding:utf-8 _*_ 
-import MySQLdb
+import pymysql
 from celery import task
 from OpsManage.utils import base
 from OpsManage.models import Assets,Email_Config,Server_Assets, \
@@ -13,7 +13,7 @@ def expireAssets(**kw):
     if kw.has_key('expire') and kw.has_key('user'): 
         try:
             config = Email_Config.objects.get(id=1)
-        except Exception ,ex:
+        except Exception as ex:
             return ex        
         expired = []
         expire_soon = []
@@ -47,7 +47,7 @@ def expireAssets(**kw):
             content = table + """注：负数表示<strong>按照预警规则</strong>已经过期多少天"""
             try:
                 to_user = User.objects.get(username=kw.get('user')).email
-            except Exception, ex:
+            except Exception as ex:
                 return ex                                            
             if config.subject:subject = "{sub} 资产过期提醒  【重要】".format(sub=config.subject)
             else:subject = "资产过期提醒  【重要】"
@@ -67,8 +67,8 @@ def updateAssets():
         if assets.assets_type in ['vmser','server']:
             try:
                 server_assets = Server_Assets.objects.get(assets=assets)
-            except Exception, ex:
-                print ex
+            except Exception as ex:
+                print(ex)
                 continue
             sList.append(server_assets.ip)
             if server_assets.keyfile == 1:resource.append({"hostname": server_assets.ip, "port": int(server_assets.port),"username": server_assets.username})
@@ -90,8 +90,8 @@ def updateAssets():
                                                                           vcpu_number=ds.get('vcpu_number')
                                                                           )
                     sList.append(server_assets.ip)
-                except Exception, ex:
-                    print ex 
+                except Exception as ex:
+                    print(ex)
                 for nk in ds.get('nks'):
                     macaddress = nk.get('macaddress')
                     count = NetworkCard_Assets.objects.filter(assets=assets,macaddress=macaddress).count()
@@ -100,16 +100,16 @@ def updateAssets():
                             NetworkCard_Assets.objects.filter(assets=assets,macaddress=macaddress).update(assets=assets,device=nk.get('device'),
                                                                                                                ip=nk.get('address'),module=nk.get('module'),
                                                                                                                mtu=nk.get('mtu'),active=nk.get('active'))
-                        except Exception, ex:
-                            print ex
+                        except Exception as ex:
+                            print(ex)
                     else:
                         try:
                             NetworkCard_Assets.objects.create(assets=assets,device=nk.get('device'),
                                                           macaddress=nk.get('macaddress'),
                                                           ip=nk.get('address'),module=nk.get('module'),
                                                           mtu=nk.get('mtu'),active=nk.get('active'))
-                        except Exception, ex:
-                            print ex  
+                        except Exception as ex:
+                            print(ex)
                     
                     
 @task 
@@ -117,17 +117,17 @@ def orderSql(**kw):
     if kw.has_key('sql') and kw.has_key('dbId'):
         try:
             db = DataBase_Server_Config.objects.get(id=kw.get('dbId'))
-        except Exception, ex:
+        except Exception as ex:
             return ex
         try:
-            conn = MySQLdb.connect(host=db.db_host,user=db.db_user,passwd=db.db_passwd,db=db.db_name,port=int(db.db_port))
+            conn = pymysql.connect(host=db.db_host,user=db.db_user,passwd=db.db_passwd,db=db.db_name,port=int(db.db_port))
             cur = conn.cursor()
             ret = cur.execute(kw.get('sql'))
             conn.commit()
             cur.close()
             conn.close()            
             return {"status":'success','data':ret}
-        except MySQLdb.Error,e:
+        except pymysql.Error as e:
             conn.rollback()
             cur.close()
             conn.close() 

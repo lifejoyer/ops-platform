@@ -19,7 +19,7 @@ def AnsibleModelLogsList(request,format=None):
                                                         create_time__lte=request.data.get('endTime'),
                                                         ).order_by("id")[:1000]
             serializer = serializers.AnsibleModelLogsSerializer(snippets, many=True)
-        except Exception, ex:
+        except Exception as ex:
             return ex
         if request.user.has_perm('delete_log_ansible_model'):
             return Response({"data":serializer.data,"perm":1})
@@ -35,7 +35,7 @@ def AnsiblePlayBookLogsList(request,format=None):
                                                         create_time__lte=request.data.get('endTime'),
                                                         ).order_by("id")[:1000]
             serializer = serializers.AnsiblePlaybookLogsSerializer(snippets, many=True)
-        except Exception, ex:
+        except Exception as ex:
             return ex
         if request.user.has_perm('can_delete_log_ansible_playbook'):
             return Response({"data":serializer.data,"perm":1})

@@ -15,6 +15,7 @@ Including another URLconf
 """
 
 from django.conf.urls import url,include
+from django.views.generic.base import RedirectView
 from django.contrib import admin
 from OpsManage.views import (index,assets,cron,deploy,
                              ansible,users,wssh,task,
@@ -23,6 +24,7 @@ from OpsManage.views.elfinder import finder
 from rest_framework.urlpatterns import format_suffix_patterns
 urlpatterns = [
     url(r'^$',index.index),
+    url(r'^favicon.ico$',RedirectView.as_view(url=r'static/favicon.ico')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^admin/', admin.site.urls),
     url(r'^login/',index.login),  
@@ -49,18 +51,22 @@ urlpatterns = [
     url(r'^cron_config',cron.cron_config),
     url(r'^cron_log/(?P<page>[0-9]+)/$',cron.cron_log),
     url(r'^cron_mod/(?P<cid>[0-9]+)/$',cron.cron_mod),
+    url(r'^cron_init/(?P<cid>[0-9]+)/$',cron.cron_init),
     url(r'^deploy_add',deploy.deploy_add),
     url(r'^deploy_list',deploy.deploy_list),
+    url(r'^new_deploy_list',deploy.deploy_list_v2),
     url(r'^deploy_log/(?P<page>[0-9]+)/$',deploy.deploy_log),
     url(r'^deploy_record/(?P<page>[0-9]+)/$',deploy.deploy_record),
     url(r'^deploy_mod/(?P<pid>[0-9]+)/$',deploy.deploy_modf),
-    url(r'^deploy_init/(?P<pid>[0-9]+)/$',deploy.deploy_init),
+    url(r'^deploy_compile/(?P<pid>[0-9]+)/$',deploy.deploy_compile),
     url(r'^deploy_version/(?P<pid>[0-9]+)/$',deploy.deploy_version),    
     url(r'^deploy_run/(?P<pid>[0-9]+)/$',deploy.deploy_run),
     url(r'^deploy_result/(?P<pid>[0-9]+)/$',deploy.deploy_result),
     url(r'^deploy_order/status/(?P<pid>[0-9]+)/$',deploy.deploy_order_status),
     url(r'^deploy_order/rollback/(?P<pid>[0-9]+)/$',deploy.deploy_order_rollback),
     url(r'^deploy_manage/(?P<pid>[0-9]+)/$',deploy.deploy_manage),
+    url(r'^deploy_search/',deploy.deploy_search),
+    url(r'^new_deploy_search/', deploy.new_deploy_search),
     url(r'^apps/$',ansible.apps_list),
     url(r'^apps/model/$',ansible.apps_model),
     url(r'^apps/script/online/$',ansible.apps_script_online),

@@ -24,7 +24,7 @@ class webterminal(WebsocketConsumer):
     def connect(self,message,**kwargs):
         try:
             webssh = Global_Config.objects.get(id=1).webssh
-        except Exception,ex:
+        except Exception as ex:
             webssh = 0
         if webssh != 1:
             message.reply_channel.send({"text":json.dumps(['stdout','\033[1;3;31m请联系管理员开启WebSSH功能~\033[0m'])},immediately=True)  
@@ -60,7 +60,7 @@ class webterminal(WebsocketConsumer):
                 message.reply_channel.send({"accept":False})
                 self.disconnect(message) 
                 return
-            except Exception, ex:
+            except Exception as ex:
                 message.reply_channel.send({"text":json.dumps(['stdout','\033[1;3;31m连接服务器失败: {ex}\033[0m'.format(ex=str(ex))])},immediately=True)
                 message.reply_channel.send({"accept":False})
                 self.disconnect(message) 
@@ -107,9 +107,9 @@ class webterminal(WebsocketConsumer):
         except socket.error:
             self.closessh()
             self.close()
-        except Exception,e:
+        except Exception as e:
             import traceback
-            print traceback.print_exc()
+            print(traceback.print_exc())
             logger.error(msg="webssh receive failed: {ex}".format(ex=str(traceback.print_exc())))
             self.closessh()
             self.close()

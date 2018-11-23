@@ -191,10 +191,11 @@ class Service_Assets(models.Model):
     project = models.ForeignKey('Project_Assets',related_name='service_assets', on_delete=models.CASCADE)
     service_name = models.CharField(max_length=100) 
     service_type = models.CharField(max_length=10, null=True, blank=True)
-    project_address = models.CharField(max_length=100, null=True, blank=True)
-    project_repo_user = models.CharField(max_length=20, null=True, blank=True)
-    project_repo_passwd = models.CharField(max_length=64,null=True, blank=True)
-
+    service_root_path = models.CharField(max_length=200, null=True, blank=True)
+    service_pom_path = models.CharField(max_length=100, null=True, blank=True)
+    service_repo_address = models.CharField(max_length=100, null=True, blank=True,verbose_name='git仓库地址')
+    service_repo_user = models.CharField(max_length=20, null=True, blank=True,verbose_name='git仓库用户')
+    service_repo_passwd = models.CharField(max_length=64, null=True, blank=True,verbose_name='git仓库密码')
     class Meta:
         db_table = 'opsmanage_service_assets'
         permissions = (
@@ -243,6 +244,21 @@ class K8s_Assets(models.Model):
         verbose_name_plural = 'kubernetes资产表'
 
 
+class RunEnv_Assets(models.Model):
+    env_level=models.SmallIntegerField(null=False,verbose_name='运行环境级别')
+    env_name = models.CharField(max_length=20,null=False,unique=True,verbose_name='运行环境名称')
+    class Meta:
+        db_table = 'opsmanage_runenv_assets'
+        permissions = (
+            ("can_read_runenv_assets", "读取环境资产权限"),
+            ("can_change_runenv_assets", "更改环境资产权限"),
+            ("can_add_runenv_assets", "添加环境资产权限"),
+            ("can_delete_runenv_assets", "删除环境资产权限"),
+        )
+        verbose_name = '运行环境资产表'
+        verbose_name_plural = '运行环境资产表'
+
+
 class Zone_Assets(models.Model):  
     zone_name = models.CharField(max_length=100,unique=True) 
     zone_contact = models.CharField(max_length=100,blank=True,null=True,verbose_name='机房联系人')
@@ -259,7 +275,8 @@ class Zone_Assets(models.Model):
         )  
         verbose_name = '机房资产表'  
         verbose_name_plural = '机房资产表'         
-                
+
+
 class Line_Assets(models.Model):   
     line_name = models.CharField(max_length=100,unique=True)     
     '''自定义权限'''
@@ -327,12 +344,14 @@ class Project_Config(models.Model):
     project_user = models.CharField(blank=True,null=True,max_length=50,verbose_name='项目文件宿主',default=None)
     project_model = models.CharField(max_length=10,verbose_name='上线类型',blank=True,null=True,default=None)
     project_audit_group = models.SmallIntegerField(verbose_name='项目授权组',blank=True,null=True,default=None)
+    project_category = models.CharField(max_length=50,verbose_name='项目部署类别',default='docker')
     jenkins = models.ForeignKey('Jenkins_Assets', on_delete=models.PROTECT,default=1)
     k8s = models.ForeignKey('K8s_Assets', on_delete=models.PROTECT,default=1)
     project_branch = models.CharField(max_length=50, verbose_name='仓库分支', blank=True, null=True)
     project_name = models.CharField(max_length=100,verbose_name='项目名称', blank=True, null=True, default=None)
     project_service_port = models.CharField(max_length=10, verbose_name='对外服务端口', blank=True, null=True, default=None)
     project_debug_port = models.CharField(max_length=10, verbose_name='debug端口', blank=True, null=True, default=None)
+    project_replication = models.SmallIntegerField(verbose_name='项目副本数',blank=True,null=True,default=1)
     project_env_var = models.CharField(max_length=1000,verbose_name='容器环境变量', blank=True, null=True, default=None)
     project_mount_path = models.CharField(max_length=500, verbose_name='挂载路径', blank=True, null=True, default=None)
     '''自定义权限'''
@@ -369,7 +388,7 @@ class Log_Project_Config(models.Model):
 class Project_Number(models.Model):
     project = models.ForeignKey('Project_Config',related_name='project_number', on_delete=models.CASCADE)
     server = models.CharField(max_length=100,verbose_name='服务器IP',default=None)
-    dir =  models.CharField(max_length=100,verbose_name='项目目录',default=None)
+    dir =  models.CharField(max_length=100,null=True, blank=True, verbose_name='项目目录',default=None)
     class Meta:
         db_table = 'opsmanage_project_number'
         unique_together = (("project", "server"))
@@ -377,11 +396,17 @@ class Project_Number(models.Model):
         verbose_name_plural = '项目成员表' 
         
     def __unicode__(self):
-        return '%s,%s' % ( self.server,self.dir)         
-        
-      
-                        
-        
+        return '%s,%s' % ( self.server,self.dir)
+
+class Project_K8s(models.Model):
+    project = models.ForeignKey('Project_Config', related_name='project_k8s', on_delete=models.CASCADE)
+    k8s = models.CharField(max_length=100,verbose_name='docker主机地址',default=None)
+    class Meta:
+        db_table = 'opsmanage_project_k8s'
+        unique_together = (("project", "k8s"))
+        verbose_name = '项目k8s关联表'
+        verbose_name_plural = '项目k8s关联表'
+
 class Cron_Config(models.Model): 
     cron_server = models.ForeignKey('Server_Assets') 
     cron_minute = models.CharField(max_length=10,verbose_name='分',default=None)

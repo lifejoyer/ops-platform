@@ -21,7 +21,7 @@ class WebChat(WebsocketConsumer):
         if self.message.user:
             try:
                 user = User.objects.get(username=self.message.user)  
-            except Exception,ex:
+            except Exception as ex:
                 message.reply_channel.send({"accept":False})  
             message.reply_channel.send({'accept': True})
             Group("chats").add(message.reply_channel)            
@@ -35,8 +35,8 @@ class WebChat(WebsocketConsumer):
                 data = json.loads(text)
                 msg = self.chat(data.get('msg'))
                 self.message.reply_channel.send({"text":json.dumps({"msg":msg,"ctime":"{ctime}".format(ctime=time.strftime('%Y-%m-%d %H:%M:%S' ,time.localtime())),"user":'Robot'})},immediately=True)
-        except Exception, ex:
-            print ex
+        except Exception as  ex:
+            print(ex)
        
         
     def disconnect(self,message,**kwargs):

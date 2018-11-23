@@ -4,12 +4,14 @@
 import magic
 from random import choice
 import string,hashlib,calendar
-import commands,os,time,smtplib
+import subprocess
+import os,time,smtplib
 from datetime import datetime,timedelta,date
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication 
 from email.mime.multipart import MIMEMultipart
 from OpsManage.utils.logger import logger
+import re
 
 def file_iterator(file_name, chunk_size=512):
     f = open(file_name, "rb")
@@ -59,11 +61,11 @@ def radString(length=8,chars=string.ascii_letters+string.digits):
 def rsync(sourceDir,destDir,exclude=None):
     if exclude:cmd = "rsync -au --delete {exclude} {sourceDir} {destDir}".format(sourceDir=sourceDir,destDir=destDir,exclude=exclude)
     else:cmd = "rsync -au --delete {sourceDir} {destDir}".format(sourceDir=sourceDir,destDir=destDir)
-    return commands.getstatusoutput(cmd)
+    return subprocess.getstatusoutput(cmd)
     
 def mkdir(dirPath):
     mkDir = "mkdir -p {dirPath}".format(dirPath=dirPath)
-    return commands.getstatusoutput(mkDir)    
+    return subprocess.getstatusoutput(mkDir)
     
     
 def cd(localDir):
@@ -73,11 +75,11 @@ def pwd():
     return os.getcwd()   
 
 def cmds(cmds):
-    return commands.getstatusoutput(cmds)
+    return subprocess.getstatusoutput(cmds)
 
 def chown(user,path):
     cmd = "chown -R {user}:{user} {path}".format(user=user,path=path)
-    return commands.getstatusoutput(cmd)
+    return subprocess.getstatusoutput(cmd)
 
 def makeToken(strs):
     m = hashlib.md5()   
@@ -87,20 +89,20 @@ def makeToken(strs):
 def lns(spath,dpath):
     if spath and dpath:
         rmLn = "rm -rf {dpath}".format(dpath=dpath)
-        status,result = commands.getstatusoutput(rmLn)
+        status,result = subprocess.getstatusoutput(rmLn)
         mkLn = "ln -s {spath} {dpath}".format(spath=spath,dpath=dpath)
-        return commands.getstatusoutput(mkLn)
+        return subprocess.getstatusoutput(mkLn)
     else:return (1,"缺少路径")    
 
 def getDaysAgo(num):
     threeDayAgo = (datetime.now() - timedelta(days = num))
-    timeStamp = int(time.mktime(threeDayAgo .timetuple()))
-    otherStyleTime = threeDayAgo .strftime("%Y%m%d")
+    timeStamp = int(time.mktime(threeDayAgo.timetuple()))
+    otherStyleTime = threeDayAgo.strftime("%Y%m%d")
     return otherStyleTime
 
 def getSQLAdvisor(host,port,user,passwd,dbname,sql):
     cmd = """/usr/bin/sqladvisor -h {host}  -P {port}  -u {user} -p '{passwd}' -d {dbname} -q '{sql}' -v 1""".format(host=host,port=port,user=user,passwd=passwd,dbname=dbname,sql=sql)
-    return commands.getstatusoutput(cmd)
+    return subprocess.getstatusoutput(cmd)
 
 def getDayAfter(num,ft=None):
     #获取今天多少天以后的日期
@@ -131,6 +133,7 @@ def getMonthFirstDayAndLastDay(year=None, month=None):
     lastDay = date(year=year, month=month, day=monthRange)
     return firstDay, lastDay
 
+
 def getFileType(filePath):
     try:
         files = magic.Magic(uncompress=True,mime=True)
@@ -139,4 +142,50 @@ def getFileType(filePath):
         file_type = '未知'
         logger.error("获取文件类型失败: {ex}".format(ex=ex))
     return file_type
-    
+
+
+def version_compare(v1, v2):
+    v1_arr = str(v1).split('.')
+    v2_arr = str(v2).split('.')
+    if len(v1_arr) > len(v2_arr):
+        v_len = len(v1_arr)
+    else:
+        v_len = len(v2_arr)
+    try:
+        for i in range(0, v_len):
+            if int(v1_arr[i]) > int(v2_arr[i]):
+                return v1
+            elif int(v1_arr[i]) < int(v2_arr[i]):
+                return v2
+            else:
+                continue
+    except IndexError as ex:
+        if len(v1_arr) > len(v2_arr):
+            return v1
+        else:
+            return v2
+
+
+def is_number(num):
+  #pattern = re.compile(r'^[-+]?[-0-9]\d*\.\d*|[-+]?\.?[0-9]\d*$')
+  pattern = re.compile(r'\d+(\.\d+)*')
+  result = pattern.fullmatch(num)
+  if result:
+    return True
+  else:
+    return False
+
+def is_version(num):
+    try:
+        nums=str(num).split('.')
+        for n in nums: int(n)
+    except ValueError as e:
+        return False
+    else:
+        return True
+
+
+def log_analysis(s):
+    pattern = re.compile(r'^\[\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}\:\d{2}\]\s\[\sINFO\]|^\[\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+\]\s\[\sERROR\]|^\[\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+\]\s\[\sWARN\]|^\[\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+\]\s\[\sDEBUG\]|^\sINFO\s\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+|^\sERROR\s\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+|^\sWARN\s\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+|^\sDEBUG\s\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+|^\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+\sERROR|^\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+\sINFO|^\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+\sDEBUG|^\d{4}\-\d{2}\-\d{2}\s\d+\:\d+\:\d+\sWARN|\d{1}\-\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}\:\d{2}|^\[INFO\]\s\[\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}\:\d{2}\]|^\[ERROR\]\s\[\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}\:\d{2}\]|^\[DEBUG\]\s\[\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}\:\d{2}\]|^\[WARN\]\s\[\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}\:\d{2}\]')
+    return re.fullmatch(pattern,s)
+

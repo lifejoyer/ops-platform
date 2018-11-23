@@ -111,7 +111,7 @@ def inventory_detail(request, id,format=None):
             if ds.ext_vars:
                 try:
                     source[ds.group_name]['vars'] = eval(ds.ext_vars)
-                except Exception ,ex:
+                except Exception as ex:
                     source[ds.group_name]['vars'] = {}
                     logger.warn(msg="获取资产组变量失败: {ex}".format(ex=ex))
         return JsonResponse({"code":200,"msg":"success","data":source}) 
@@ -131,7 +131,7 @@ def ansible_host_vars(request, id,format=None):
         if assets.host_vars:
             try:
                 host_vars = eval(assets.host_vars)
-            except Exception,ex:
+            except Exception as ex:
                 return JsonResponse({'msg':"获取主机变量失败: {ex}".format(ex=ex),"code":500,'data':{}}) 
         return JsonResponse({'msg':"查询成功","code":200,'data':host_vars})  
     elif  request.method == 'POST': 
@@ -139,7 +139,7 @@ def ansible_host_vars(request, id,format=None):
         if host_vars:
             try:
                 host_vars = eval(request.data.get('host_vars'))
-            except Exception,ex:
+            except Exception as ex:
                 return JsonResponse({'msg':"更新主机变量失败: {ex}".format(ex=ex),"code":500,'data':{}}) 
         assets.host_vars = host_vars
         assets.save()

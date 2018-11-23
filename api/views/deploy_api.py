@@ -14,6 +14,8 @@ from django.contrib.auth.decorators import login_required
 from rest_framework import generics
 from django.db.models import Q
 from django.http import JsonResponse
+import json
+from django.forms.models import model_to_dict
 
 @api_view(['GET', 'POST' ])
 @permission_required('OpsManage.can_add_project_config',raise_exception=True)
@@ -45,7 +47,35 @@ def deploy_detail(request, id,format=None):
     elif request.method == 'DELETE':
         if not request.user.has_perm('OpsManage.delete_project_config'):
             return Response(status=status.HTTP_403_FORBIDDEN)
-        recordProject(project_user=str(request.user),project_id=id,project_name=snippet.project.project_name,project_content="删除项目")
+        recordProject(project_user=str(request.user),project_id=id,project_name="删除部署项目",project_content="删除项目")
+        snippet.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_required('OpsManage.can_delete_project_config', raise_exception=True)
+def deploy_detail_v2(request, id, format=None):
+    """
+    Retrieve, update or delete a server assets instance.
+    """
+    try:
+        snippet = Project_Config.objects.filter(service_id=id)
+    except Project_Config.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        data=[]
+        deployList = Project_Config.objects.filter(service_id=id)
+        for line in deployList:
+            temp_dict=model_to_dict(line)
+            temp_dict["service_name"]=line.service.service_name
+            data.append(temp_dict)
+        return Response(data)
+
+    elif request.method == 'DELETE':
+        if not request.user.has_perm('OpsManage.delete_project_config'):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        recordProject(project_user=str(request.user), project_id=id, project_name="删除部署项目", project_content="删除项目")
         snippet.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
